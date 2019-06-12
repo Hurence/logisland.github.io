@@ -67,7 +67,7 @@
     <div class="home-hero">
       <img src="/docs/assets/images/logisland-logo.png" class="project-logo" title="Logisland">
       <h2>Stream analytics at scale</h2>
-      <p>An advanced event processing framework, crafted from the best of breed big data stream processing tools.</p>
+      <p>An advanced real-time data processing framework, crafted from the best of breed big data stream processing tools.</p>
       <a href="/docs/get-started/" class="button-cta secondary">Get Started</a>
       <a href="#" class="scroll-down" address="true"></a>
     </div>
@@ -76,7 +76,116 @@
 
   <div class="full-width-bg component homepage-highlights-band">
 
+    <div class="width-12-12 highlights-alternating-inline-block">
+       
+        <div class="width-12-12">
+            <h2>In 2025 more than 30% of data will be real time data!</h2>
+        </div>
+        
+        <div class="width-12-12 block-content">
+            <p>The revolution of connected object paves the demand for powerful stream processing technologies.
+                Logisland is one of them: it efficiently captures, analyses, compresses and stores huge volumes of very tiny to very 
+                large data.
+            </p>
+        </div>
+    
+    </div>
 
+    <div class="width-12-12 highlights-alternating-inline-block">
+               
+        <div class="width-12-12">
+            <h2>Your one stop shop framework for all streaming jobs</h2>
+        </div>
+  
+
+        <div class="width-12-12 block-content">
+            <p>Logisland is the only technology that 
+                offers a unified approach to stream analytics with just simple changes in configurations to select different message buses 
+                or distributed engines. A guarantee of independence and stability in a fast changing technological 
+                world. <a href="/docs/vision/streamprocessing">Learn more</a>
+            </p>
+        </div>
+    </div>
+      
+
+    <div class="width-12-12 highlights-alternating-inline-block">
+
+        <div class="width-12-12">
+            <h2>Plugins for major stream analysis use cases</h2>
+        </div>
+  
+        <div class="width-12-12 block-content">
+            <p>You all love Google for providing <a>Web Analytics</a> for your Web sites. With Logisland though, in parallel, you can
+                route the same click streams to your own analytics. A bunch of plugins and tools will give you access to your streams
+                and you will be able to link them to your back office for better <a>recommandations</a>, <a>advertising</a> or simply a greater 
+                understanding of your business and customers (<a>vision 360 degree</a>).
+            </p>
+        </div>
+       
+        <div class="width-12-12 block-content">
+            <p>IoT events are the fastest growing data sets. Many industries find incredible use cases using sensors and actuators.
+                Logisland provides tools for advanced Analytics of I(I)oT data, including <a>impressive data compaction</a> 
+                for storage in the <a>major time series databases</a>. Logisland has pluggins for the main <a>industry 4.0</a> use cases
+                : <a>smart alerting</a>, <a>prediction</a> and <a>trends detection</a>.
+            </p>
+        </div>
+       
+    </div>       
+
+    <div class="grid-wrapper">
+      <div class="grid__item width-8-12 width-12-12-m">
+        <h2>Best of Breed Libraries and Standards</h2>
+        <p>Logisland brings a cohesive, fun to use full-stack framework by leveraging best of breed libraries you love and use wired 
+        on a standard backbone. <a href="/docs/vision/standards">Learn more</a>.</p>
+      </div>
+    </div>
+    <div class="grid-wrapper libraries-standards-band">
+  
+      <div class="grid__item width-2-12 width-6-12-m block">
+        <a href="http://kafka.apache.org/" target="_blank">
+          <img src="/docs/assets/images/logoset_apache_kafka.png">
+          <span>Apache Kafka</span>
+        </a>
+      </div>
+  
+      <div class="grid__item width-2-12 width-6-12-m block">
+        <a href="http://spark.apache.org" target="_blank">
+          <img src="/docs/assets/images/logoset_spark.png">
+          <span>Apache Spark.</span>
+        </a>
+      </div>
+  
+      <div class="grid__item width-2-12 width-6-12-m block">
+        <a href="https://kubernetes.io/" target="_blank">
+          <img src="/docs/assets/images/logoset_kubernetes.png">
+          <span>Kubernetes</span>
+        </a>
+      </div>
+  
+  
+      <div class="grid__item width-2-12 width-6-12-m block">
+        <a href="https://prometheus.io/" target="_blank">
+          <img src="/docs/assets/images/logoset_prometheus.png">
+          <span>Prometheus</span>
+        </a>
+      </div>
+  
+      <div class="grid__item width-2-12 width-6-12-m block">
+        <a href="https://www.openfaas.com/" target="_blank">
+          <img src="/docs/assets/images/logoset_openfaas.png">
+          <span>OpenFAAS</span>
+        </a>
+      </div>
+  
+      <div class="grid__item width-2-12 width-6-12-m block">
+        <a href="https://www.jaegertracing.io/" target="_blank">
+          <img src="/docs/assets/images/logoset_jaeger.png">
+          <span>Jaeger tracing</span>
+        </a>
+      </div>
+      
+    </div> 
+      
     <div class="width-12-12 highlights-alternating-inline-block">
 
         <div class="width-12-12">
@@ -103,8 +212,8 @@
         <pre class="highlight"><code class="yaml">engine:
   component: KafkaEngine
   configuration:
-    spark.app.name: GettingStarted
-    spark.master: local[2]
+    app.name: GettingStarted
+    master: local[2]
     </code>
     </pre>
       </div>
@@ -149,64 +258,6 @@
  
       </div>
     </div>
-  </div>
-
-
-  <div class="grid-wrapper">
-    <div class="grid__item width-8-12 width-12-12-m">
-      <h2>Best of Breed Libraries and Standards</h2>
-      <p>Logisland brings a cohesive, fun to use full-stack framework by leveraging best of breed libraries you love and use wired 
-      on a standard backbone. <a href="/docs/vision/standards">Learn more</a>.</p>
-    </div>
-  </div>
-  <div class="grid-wrapper libraries-standards-band">
-
-    <div class="grid__item width-2-12 width-6-12-m block">
-      <a href="http://kafka.apache.org/" target="_blank">
-        <img src="/docs/assets/images/logoset_apache_kafka.png">
-        <span>Apache Kafka</span>
-      </a>
-    </div>
-
-    <div class="grid__item width-2-12 width-6-12-m block">
-      <a href="http://spark.apache.org" target="_blank">
-        <img src="/docs/assets/images/logoset_spark.png">
-        <span>Apache Spark.</span>
-      </a>
-    </div>
-
-    <div class="grid__item width-2-12 width-6-12-m block">
-      <a href="https://kubernetes.io/" target="_blank">
-        <img src="/docs/assets/images/logoset_kubernetes.png">
-        <span>Kubernetes</span>
-      </a>
-    </div>
-
-
-    <div class="grid__item width-2-12 width-6-12-m block">
-      <a href="https://prometheus.io/" target="_blank">
-        <img src="/docs/assets/images/logoset_prometheus.png">
-        <span>Prometheus</span>
-      </a>
-    </div>
-
-    <div class="grid__item width-2-12 width-6-12-m block">
-      <a href="https://www.openfaas.com/" target="_blank">
-        <img src="/docs/assets/images/logoset_openfaas.png">
-        <span>OpenFAAS</span>
-      </a>
-    </div>
-
-    <div class="grid__item width-2-12 width-6-12-m block">
-      <a href="https://www.jaegertracing.io/" target="_blank">
-        <img src="/docs/assets/images/logoset_jaeger.png">
-        <span>Jaeger tracing</span>
-      </a>
-    </div>
-    
-    
-
-
   </div>
 
 </div>
