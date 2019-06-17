@@ -17,17 +17,6 @@ This guide covers:
 * MVEL syntax
 * using EL in a Processor
 
-== Prerequisites
-
-To complete this guide, you need:
-
-* less than 15 minutes
-* an IDE
-* JDK 1.8+ installed with `JAVA_HOME` configured appropriately
-* Apache Maven 3.5.3+
-* The completed greeter application from the link:getting-started-guide[Getting Started Guide]
-
-
 == Overview
 
 All data in Logisland is represented by an abstraction called a `Record`. Those records contains fields of different types.
@@ -57,8 +46,7 @@ So be sure to carefully read description of the properties to understand how it 
 We are currently using the **mvel** language which you can check http://mvel.documentnode.com/[mvel documentation]
 
 [TIP]
-If you want to be able to use another ScriptEngine than mvel (javascript for example). You can open an issue to ask this feature.
-Feel free to make a Pull request as well to implement this new feature.
+If you want to be able to use another ScriptEngine than mvel (javascript for example). You can open an issue to ask this feature. Feel free to make a Pull request as well to implement this new feature.
 
 We have implemented some example as unit test as well if you want to check in the code source, the class is
 `com.hurence.logisland.component.TestInterpretedPropertyValueWithMvelEngine` in the module `com.hurence.logisland:logisland-api`.

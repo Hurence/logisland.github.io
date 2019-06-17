@@ -1,0 +1,678 @@
+{
+  "definitions": {},
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "http://example.com/root.json",
+  "type": "object",
+  "title": "The Root Schema",
+  "required": [
+    "version",
+    "documentation",
+    "engine"
+  ],
+  "properties": {
+    "version": {
+      "$id": "#/properties/version",
+      "type": "string",
+      "title": "The Version Schema",
+      "default": "",
+      "examples": [
+        "0.10.3"
+      ],
+      "pattern": "^(.*)$"
+    },
+    "engine": {
+      "$id": "#/properties/engine",
+      "type": "object",
+      "title": "The Engine Schema",
+      "required": [
+        "component",
+        "configuration",
+        "controllerServiceConfigurations",
+        "streamConfigurations"
+      ],
+      "properties": {
+        "component": {
+          "$id": "#/properties/engine/properties/component",
+          "type": "string",
+          "title": "The Component Schema",
+          "enum": [ "com.hurence.logisland.engine.spark.KafkaStreamProcessingEngine", "com.hurence.logisland.engine.vanilla.PlainJavaEngine"],
+        },
+        "configuration": {
+          "$id": "#/properties/engine/properties/configuration",
+          "type": "object",
+          "title": "The Configuration Schema",
+          "required": [
+            "spark.app.name",
+            "spark.master",
+            "spark.driver.memory",
+            "spark.driver.cores",
+            "spark.executor.memory",
+            "spark.executor.cores",
+            "spark.executor.instances",
+            "spark.yarn.queue",
+            "spark.yarn.maxAppAttempts",
+            "spark.yarn.am.attemptFailuresValidityInterval",
+            "spark.yarn.max.executor.failures",
+            "spark.yarn.executor.failuresValidityInterval",
+            "spark.task.maxFailures",
+            "spark.streaming.batchDuration",
+            "spark.serializer",
+            "spark.streaming.backpressure.enabled",
+            "spark.streaming.unpersist",
+            "spark.streaming.blockInterval",
+            "spark.streaming.kafka.maxRatePerPartition",
+            "spark.streaming.timeout",
+            "spark.streaming.kafka.maxRetries",
+            "spark.streaming.ui.retainedBatches",
+            "spark.streaming.receiver.writeAheadLog.enable",
+            "spark.ui.port"
+          ],
+          "properties": {
+            "spark.app.name": {
+              "$id": "#/properties/engine/properties/configuration/properties/spark.app.name",
+              "type": "string",
+              "title": "The Spark.app.name Schema",
+              "default": "",
+              "examples": [
+                "EvoaHistorian"
+              ],
+              "pattern": "^(.*)$"
+            },
+            "spark.master": {
+              "$id": "#/properties/engine/properties/configuration/properties/spark.master",
+              "enum": [ "local[1]", "local[2]", "local[4]", "local[8]","local[*]", "mesos", "yarn-client", "yarn-cluster", "k8s" ],
+              "default": "local[*]",
+              "pattern": "^(.*)$"
+            },
+            "spark.driver.memory": {
+              "$id": "#/properties/engine/properties/configuration/properties/spark.driver.memory",
+              "type": "string",
+              "title": "The Spark.driver.memory Schema",
+              "default": "1g",
+              "examples": [
+                "2g"
+              ],
+              "pattern": "^(.*)$"
+            },
+            "spark.driver.cores": {
+              "$id": "#/properties/engine/properties/configuration/properties/spark.driver.cores",
+              "type": "integer",
+              "title": "The Spark.driver.cores Schema",
+              "default": 0,
+              "examples": [
+                2
+              ]
+            },
+            "spark.executor.memory": {
+              "$id": "#/properties/engine/properties/configuration/properties/spark.executor.memory",
+              "type": "string",
+              "title": "The Spark.executor.memory Schema",
+              "default": "",
+              "examples": [
+                "3g"
+              ],
+              "pattern": "^(.*)$"
+            },
+            "spark.executor.cores": {
+              "$id": "#/properties/engine/properties/configuration/properties/spark.executor.cores",
+              "type": "integer",
+              "title": "The Spark.executor.cores Schema",
+              "default": 0,
+              "examples": [
+                2
+              ]
+            },
+            "spark.executor.instances": {
+              "$id": "#/properties/engine/properties/configuration/properties/spark.executor.instances",
+              "type": "integer",
+              "title": "The Spark.executor.instances Schema",
+              "default": 1,
+              "examples": [
+                20
+              ]
+            },
+            "spark.yarn.queue": {
+              "$id": "#/properties/engine/properties/configuration/properties/spark.yarn.queue",
+              "type": "string",
+              "title": "The Spark.yarn.queue Schema",
+              "default": "default",
+              "examples": [
+                "default"
+              ],
+              "pattern": "^(.*)$"
+            },
+            "spark.yarn.maxAppAttempts": {
+              "$id": "#/properties/engine/properties/configuration/properties/spark.yarn.maxAppAttempts",
+              "type": "integer",
+              "title": "The Spark.yarn.maxappattempts Schema",
+              "default": 0,
+              "examples": [
+                4
+              ]
+            },
+            "spark.yarn.am.attemptFailuresValidityInterval": {
+              "$id": "#/properties/engine/properties/configuration/properties/spark.yarn.am.attemptFailuresValidityInterval",
+              "type": "string",
+              "title": "The Spark.yarn.am.attemptfailuresvalidityinterval Schema",
+              "default": "1h",
+              "examples": [
+                "1h"
+              ],
+              "pattern": "^(.*)$"
+            },
+            "spark.yarn.max.executor.failures": {
+              "$id": "#/properties/engine/properties/configuration/properties/spark.yarn.max.executor.failures",
+              "type": "integer",
+              "title": "The Spark.yarn.max.executor.failures Schema",
+              "default": 20,
+              "examples": [
+                20
+              ]
+            },
+            "spark.yarn.executor.failuresValidityInterval": {
+              "$id": "#/properties/engine/properties/configuration/properties/spark.yarn.executor.failuresValidityInterval",
+              "type": "string",
+              "title": "The Spark.yarn.executor.failuresvalidityinterval Schema",
+              "default": "1h",
+              "examples": [
+                "1h"
+              ],
+              "pattern": "^(.*)$"
+            },
+            "spark.task.maxFailures": {
+              "$id": "#/properties/engine/properties/configuration/properties/spark.task.maxFailures",
+              "type": "integer",
+              "title": "The Spark.task.maxfailures Schema",
+              "default": 0,
+              "examples": [
+                8
+              ]
+            },
+            "spark.streaming.batchDuration": {
+              "$id": "#/properties/engine/properties/configuration/properties/spark.streaming.batchDuration",
+              "type": "integer",
+              "title": "The Spark.streaming.batchduration Schema",
+              "default": 0,
+              "examples": [
+                2000
+              ]
+            },
+            "spark.serializer": {
+              "$id": "#/properties/engine/properties/configuration/properties/spark.serializer",
+              "type": "string",
+              "title": "The Spark.serializer Schema",
+              "default": "",
+              "examples": [
+                "org.apache.spark.serializer.KryoSerializer"
+              ],
+              "pattern": "^(.*)$"
+            },
+            "spark.streaming.backpressure.enabled": {
+              "$id": "#/properties/engine/properties/configuration/properties/spark.streaming.backpressure.enabled",
+              "type": "boolean",
+              "title": "The Spark.streaming.backpressure.enabled Schema",
+              "default": false,
+              "examples": [
+                false
+              ]
+            },
+            "spark.streaming.unpersist": {
+              "$id": "#/properties/engine/properties/configuration/properties/spark.streaming.unpersist",
+              "type": "boolean",
+              "title": "The Spark.streaming.unpersist Schema",
+              "default": false,
+              "examples": [
+                false
+              ]
+            },
+            "spark.streaming.blockInterval": {
+              "$id": "#/properties/engine/properties/configuration/properties/spark.streaming.blockInterval",
+              "type": "integer",
+              "title": "The Spark.streaming.blockinterval Schema",
+              "default": 0,
+              "examples": [
+                500
+              ]
+            },
+            "spark.streaming.kafka.maxRatePerPartition": {
+              "$id": "#/properties/engine/properties/configuration/properties/spark.streaming.kafka.maxRatePerPartition",
+              "type": "integer",
+              "title": "The Spark.streaming.kafka.maxrateperpartition Schema",
+              "default": 0,
+              "examples": [
+                6000
+              ]
+            },
+            "spark.streaming.timeout": {
+              "$id": "#/properties/engine/properties/configuration/properties/spark.streaming.timeout",
+              "type": "integer",
+              "title": "The Spark.streaming.timeout Schema",
+              "default": 0,
+              "examples": [
+                -1
+              ]
+            },
+            "spark.streaming.kafka.maxRetries": {
+              "$id": "#/properties/engine/properties/configuration/properties/spark.streaming.kafka.maxRetries",
+              "type": "integer",
+              "title": "The Spark.streaming.kafka.maxretries Schema",
+              "default": 0,
+              "examples": [
+                60
+              ]
+            },
+            "spark.streaming.ui.retainedBatches": {
+              "$id": "#/properties/engine/properties/configuration/properties/spark.streaming.ui.retainedBatches",
+              "type": "integer",
+              "title": "The Spark.streaming.ui.retainedbatches Schema",
+              "default": 0,
+              "examples": [
+                200
+              ]
+            },
+            "spark.streaming.receiver.writeAheadLog.enable": {
+              "$id": "#/properties/engine/properties/configuration/properties/spark.streaming.receiver.writeAheadLog.enable",
+              "type": "boolean",
+              "title": "The Spark.streaming.receiver.writeaheadlog.enable Schema",
+              "default": false,
+              "examples": [
+                false
+              ]
+            },
+            "spark.ui.port": {
+              "$id": "#/properties/engine/properties/configuration/properties/spark.ui.port",
+              "type": "string",
+              "title": "The Spark.ui.port Schema",
+              "default": 4050,
+              "examples": [
+                4050
+              ]
+            }
+          }
+        },
+        "controllerServiceConfigurations": {
+          "$id": "#/properties/engine/properties/controllerServiceConfigurations",
+          "type": "array",
+          "title": "The Controllerserviceconfigurations Schema",
+          "items": {
+            "$id": "#/properties/engine/properties/controllerServiceConfigurations/items",
+            "type": "object",
+            "title": "The Items Schema",
+            "required": [
+              "controllerService",
+              "component",
+              "type",
+              "documentation",
+              "configuration"
+            ],
+            "properties": {
+              "controllerService": {
+                "$id": "#/properties/engine/properties/controllerServiceConfigurations/items/properties/controllerService",
+                "type": "string",
+                "title": "The Controllerservice Schema",
+                "default": "",
+                "examples": [
+                  "datastore_service"
+                ],
+                "pattern": "^(.*)$"
+              },
+              "component": {
+                "$id": "#/properties/engine/properties/controllerServiceConfigurations/items/properties/component",
+                "type": "string",
+                "title": "The Component Schema",
+                "default": "",
+                "examples": [
+                  "com.hurence.logisland.service.solr.Solr_6_4_2_ChronixClientService"
+                ],
+                "pattern": "^(.*)$"
+              },
+              "type": {
+                "$id": "#/properties/engine/properties/controllerServiceConfigurations/items/properties/type",
+                "type": "string",
+                "title": "The Type Schema",
+                "default": "",
+                "examples": [
+                  "service"
+                ],
+                "pattern": "^(.*)$"
+              },
+              "documentation": {
+                "$id": "#/properties/engine/properties/controllerServiceConfigurations/items/properties/documentation",
+                "type": "string",
+                "title": "The Documentation Schema",
+                "default": "",
+                "examples": [
+                  "SolR Chronix service"
+                ],
+                "pattern": "^(.*)$"
+              },
+              "configuration": {
+                "$id": "#/properties/engine/properties/controllerServiceConfigurations/items/properties/configuration",
+                "type": "object",
+                "title": "The Configuration Schema",
+                "required": [
+                  "solr.cloud",
+                  "solr.connection.string",
+                  "solr.collection",
+                  "solr.concurrent.requests",
+                  "flush.interval",
+                  "batch.size"
+                ],
+                "properties": {
+                  "solr.cloud": {
+                    "$id": "#/properties/engine/properties/controllerServiceConfigurations/items/properties/configuration/properties/solr.cloud",
+                    "type": "boolean",
+                    "title": "The Solr.cloud Schema",
+                    "default": false,
+                    "examples": [
+                      false
+                    ]
+                  },
+                  "solr.connection.string": {
+                    "$id": "#/properties/engine/properties/controllerServiceConfigurations/items/properties/configuration/properties/solr.connection.string",
+                    "type": "string",
+                    "title": "The Solr.connection.string Schema",
+                    "default": "",
+                    "examples": [
+                      "${SOLR_CONNECTION}"
+                    ],
+                    "pattern": "^(.*)$"
+                  },
+                  "solr.collection": {
+                    "$id": "#/properties/engine/properties/controllerServiceConfigurations/items/properties/configuration/properties/solr.collection",
+                    "type": "string",
+                    "title": "The Solr.collection Schema",
+                    "default": "",
+                    "examples": [
+                      "chronix"
+                    ],
+                    "pattern": "^(.*)$"
+                  },
+                  "solr.concurrent.requests": {
+                    "$id": "#/properties/engine/properties/controllerServiceConfigurations/items/properties/configuration/properties/solr.concurrent.requests",
+                    "type": "integer",
+                    "title": "The Solr.concurrent.requests Schema",
+                    "default": 0,
+                    "examples": [
+                      4
+                    ]
+                  },
+                  "flush.interval": {
+                    "$id": "#/properties/engine/properties/controllerServiceConfigurations/items/properties/configuration/properties/flush.interval",
+                    "type": "integer",
+                    "title": "The Flush.interval Schema",
+                    "default": 0,
+                    "examples": [
+                      2000
+                    ]
+                  },
+                  "batch.size": {
+                    "$id": "#/properties/engine/properties/controllerServiceConfigurations/items/properties/configuration/properties/batch.size",
+                    "type": "integer",
+                    "title": "The Batch.size Schema",
+                    "default": 0,
+                    "examples": [
+                      500
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "streamConfigurations": {
+          "$id": "#/properties/engine/properties/streamConfigurations",
+          "type": "array",
+          "title": "The Streamconfigurations Schema",
+          "items": {
+            "$id": "#/properties/engine/properties/streamConfigurations/items",
+            "type": "object",
+            "title": "The Items Schema",
+            "required": [
+              "stream",
+              "component",
+              "type",
+              "documentation",
+              "configuration",
+              "processorConfigurations"
+            ],
+            "properties": {
+              "stream": {
+                "$id": "#/properties/engine/properties/streamConfigurations/items/properties/stream",
+                "type": "string",
+                "title": "The Stream Schema",
+                "default": "",
+                "examples": [
+                  "historian_processing_stream"
+                ],
+                "pattern": "^(.*)$"
+              },
+              "component": {
+                "$id": "#/properties/engine/properties/streamConfigurations/items/properties/component",
+                "type": "string",
+                "title": "The Component Schema",
+                "default": "",
+                "examples": [
+                  "com.hurence.logisland.stream.spark.KafkaRecordStreamParallelProcessing"
+                ],
+                "pattern": "^(.*)$"
+              },
+              "type": {
+                "$id": "#/properties/engine/properties/streamConfigurations/items/properties/type",
+                "type": "string",
+                "title": "The Type Schema",
+                "default": "",
+                "examples": [
+                  "stream"
+                ],
+                "pattern": "^(.*)$"
+              },
+              "documentation": {
+                "$id": "#/properties/engine/properties/streamConfigurations/items/properties/documentation",
+                "type": "string",
+                "title": "The Documentation Schema",
+                "default": "",
+                "examples": [
+                  "a processor that parses csv lines like the following into Records:\n  timestamp;tagname;value;quality\n  16/11/2017 18:36:01;067_PI01;0;0\n  16/11/2017 18:36:01;067_PI02;0;0\n  16/11/2017 18:36:01;067_SI01;0;0\n  16/11/2017 18:36:01;067_TI01;0;0\n  16/11/2017 18:36:01;068_PI01;20,9782939455882;100\n"
+                ],
+                "pattern": "^(.*)$"
+              },
+              "configuration": {
+                "$id": "#/properties/engine/properties/streamConfigurations/items/properties/configuration",
+                "type": "object",
+                "title": "The Configuration Schema",
+                "required": [
+                  "kafka.input.topics",
+                  "kafka.output.topics",
+                  "kafka.error.topics",
+                  "kafka.input.topics.serializer",
+                  "kafka.output.topics.serializer",
+                  "kafka.error.topics.serializer",
+                  "kafka.metadata.broker.list",
+                  "kafka.zookeeper.quorum",
+                  "kafka.topic.autoCreate",
+                  "kafka.topic.default.partitions",
+                  "kafka.topic.default.replicationFactor"
+                ],
+                "properties": {
+                  "kafka.input.topics": {
+                    "$id": "#/properties/engine/properties/streamConfigurations/items/properties/configuration/properties/kafka.input.topics",
+                    "type": "string",
+                    "title": "The Kafka.input.topics Schema",
+                    "default": "",
+                    "examples": [
+                      "evoa_historian"
+                    ],
+                    "pattern": "^(.*)$"
+                  },
+                  "kafka.output.topics": {
+                    "$id": "#/properties/engine/properties/streamConfigurations/items/properties/configuration/properties/kafka.output.topics",
+                    "type": "string",
+                    "title": "The Kafka.output.topics Schema",
+                    "default": "",
+                    "examples": [
+                      "evoa_series"
+                    ],
+                    "pattern": "^(.*)$"
+                  },
+                  "kafka.error.topics": {
+                    "$id": "#/properties/engine/properties/streamConfigurations/items/properties/configuration/properties/kafka.error.topics",
+                    "type": "string",
+                    "title": "The Kafka.error.topics Schema",
+                    "default": "",
+                    "examples": [
+                      "logisland_errors"
+                    ],
+                    "pattern": "^(.*)$"
+                  },
+                  "kafka.input.topics.serializer": {
+                    "$id": "#/properties/engine/properties/streamConfigurations/items/properties/configuration/properties/kafka.input.topics.serializer",
+                    "type": "string",
+                    "title": "The Kafka.input.topics.serializer Schema",
+                    "default": "",
+                    "examples": [
+                      "none"
+                    ],
+                    "pattern": "^(.*)$"
+                  },
+                  "kafka.output.topics.serializer": {
+                    "$id": "#/properties/engine/properties/streamConfigurations/items/properties/configuration/properties/kafka.output.topics.serializer",
+                    "type": "string",
+                    "title": "The Kafka.output.topics.serializer Schema",
+                    "default": "",
+                    "examples": [
+                      "com.hurence.logisland.serializer.JsonSerializer"
+                    ],
+                    "pattern": "^(.*)$"
+                  },
+                  "kafka.error.topics.serializer": {
+                    "$id": "#/properties/engine/properties/streamConfigurations/items/properties/configuration/properties/kafka.error.topics.serializer",
+                    "type": "string",
+                    "title": "The Kafka.error.topics.serializer Schema",
+                    "default": "",
+                    "examples": [
+                      "com.hurence.logisland.serializer.JsonSerializer"
+                    ],
+                    "pattern": "^(.*)$"
+                  },
+                  "kafka.metadata.broker.list": {
+                    "$id": "#/properties/engine/properties/streamConfigurations/items/properties/configuration/properties/kafka.metadata.broker.list",
+                    "type": "string",
+                    "title": "The Kafka.metadata.broker.list Schema",
+                    "default": "",
+                    "examples": [
+                      "${KAFKA_BROKERS}"
+                    ],
+                    "pattern": "^(.*)$"
+                  },
+                  "kafka.zookeeper.quorum": {
+                    "$id": "#/properties/engine/properties/streamConfigurations/items/properties/configuration/properties/kafka.zookeeper.quorum",
+                    "type": "string",
+                    "title": "The Kafka.zookeeper.quorum Schema",
+                    "default": "",
+                    "examples": [
+                      "${ZK_QUORUM}"
+                    ],
+                    "pattern": "^(.*)$"
+                  },
+                  "kafka.topic.autoCreate": {
+                    "$id": "#/properties/engine/properties/streamConfigurations/items/properties/configuration/properties/kafka.topic.autoCreate",
+                    "type": "boolean",
+                    "title": "The Kafka.topic.autocreate Schema",
+                    "default": false,
+                    "examples": [
+                      true
+                    ]
+                  },
+                  "kafka.topic.default.partitions": {
+                    "$id": "#/properties/engine/properties/streamConfigurations/items/properties/configuration/properties/kafka.topic.default.partitions",
+                    "type": "integer",
+                    "title": "The Kafka.topic.default.partitions Schema",
+                    "default": 0,
+                    "examples": [
+                      3
+                    ]
+                  },
+                  "kafka.topic.default.replicationFactor": {
+                    "$id": "#/properties/engine/properties/streamConfigurations/items/properties/configuration/properties/kafka.topic.default.replicationFactor",
+                    "type": "integer",
+                    "title": "The Kafka.topic.default.replicationfactor Schema",
+                    "default": 0,
+                    "examples": [
+                      1
+                    ]
+                  }
+                }
+              },
+              "processorConfigurations": {
+                "$id": "#/properties/engine/properties/streamConfigurations/items/properties/processorConfigurations",
+                "type": "array",
+                "title": "The Processorconfigurations Schema",
+                "items": {
+                  "$id": "#/properties/engine/properties/streamConfigurations/items/properties/processorConfigurations/items",
+                  "type": "object",
+                  "title": "The Items Schema",
+                  "required": [
+                    "processor",
+                    "component"
+                  ],
+                  "properties": {
+                    "processor": {
+                      "$id": "#/properties/engine/properties/streamConfigurations/items/properties/processorConfigurations/items/properties/processor",
+                      "title": "The Processor Schema"
+                    },
+                    "component": {
+                      "enum": ["com.hurence.logisland.processor.SplitText", "com.hurence.logisland.processor.ModifyId"]
+                    },
+                    "configuration": {
+                      "type": "object",
+                      "properties": {
+                        "street_address": {
+                          "allOf": [
+                            { "type": "string" },
+                            { "maxLength": 5 }
+                          ]
+                        },
+                        "country": {
+                          "enum": ["United States of America", "Canada", "Netherlands"]
+                        }
+                      }
+                      
+                    }
+                  },
+                   
+                  "allOf": [
+                    {
+                      "if": {
+                        "properties": { "component": { "const": "com.hurence.logisland.processor.SplitText" } }
+                      },
+                      "then": {
+                        "properties": { 
+                          "record.type": { "type": "string" },
+                          "key.regex": { "type": "string" },
+                          "key.fields": { "type": "string" },
+                          "value.regex": { "type": "string" },
+                          "value.fields": { "type": "string" }
+                        }
+                      }
+                    },
+                    {
+                      "if": {
+                        "properties": { "country": { "const": "Netherlands" } }
+                      },
+                      "then": {
+                        "properties": { "postal_code": { "pattern": "[0-9]{4} [A-Z]{2}" } }
+                      }
+                    }
+                  ]
+                    
+                  
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

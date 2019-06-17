@@ -2,7 +2,7 @@
 <html>
 
 <head>
-  <title>Kafka Operations Guide</title>
+  <title>Logisland Dynamic Properties</title>
   <script src="/docs/assets/javascript/highlightjs-pack.js" type="text/javascript"></script>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -63,198 +63,101 @@
 
     <div class="guides">
   <div class="width-12-12">
-    <h1 class="text-caps">Kafka Operations Guide</h1>
-    <div class="sect1">
-<h2 id="topics-management">1. Topics Management</h2>
+    <h1 class="text-caps">Logisland Dynamic Properties</h1>
+    <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>Here is a handful set of commands to manage your Kafka topics manually.</p>
-</div>
-<div class="paragraph">
-<p>Create a new Kafka topic named my-topic as follows:</p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 3 --topic my-topic</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Verify that the my-topic topic was successfully created by listing all available topics:</p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>bin/kafka-topics.sh --list --zookeeper localhost:2181</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Add more partitions as follows:</p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>bin/kafka-topics.sh --zookeeper localhost:2181 --alter --topic my-topic --partitions 16</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Temporarily update the retention time on the topic to one second:</p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>bin/kafka-topics.sh --zookeeper localhost:13003 --alter --topic MyTopic --config retention.ms=1000</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>then wait for the purge to take effect (about one minute). Once purged, restore the previous retention.ms value.</p>
-</div>
-<div class="paragraph">
-<p>You can also try to delete the topic. Verify first that the following line is present in <code>server.properties</code> file under config folder:</p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>delete.topic.enable=true</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>You can delete a topic named my-topic as follows:</p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>bin/kafka-topics.sh --zookeeper localhost:2181 --delete --topic my-topic</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>You can find more details about a topic named cc_payments as follows:</p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>bin/kafka-topics.sh --describe --zookeeper localhost:2181 --topic cc_payments</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>You can see the under-replicated partitions for all topics as follows:</p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>bin/kafka-topics.sh --zookeeper localhost:2181/kafka-cluster --describe --under-replicated-partitions</pre>
-</div>
+<p>Learn how to use Dynamic Properties in Logisland configurations.</p>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="producers">2. Producers</h2>
+<h2 id="overview">1. Overview</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>You can produce messages from standard input as follows:</p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>bin/kafka-console-producer.sh --broker-list localhost:9092 --topic my-topic</pre>
-</div>
+<p>You use components to run jobs in logisland that manipulate records. Those components use properties that you specify in the job configuration file. Some of them are defined in advance by the component&#8217;s developer. They got a name and you have to use it to define these properties.</p>
 </div>
 <div class="paragraph">
-<p>You can produce new messages from an existing file named messages.txt as follows:</p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>bin/kafka-console-producer.sh --broker-list localhost:9092 --topic test &lt; messages.txt</pre>
-</div>
+<p>We call those properties <strong>static properties</strong>.</p>
 </div>
 <div class="paragraph">
-<p>You can produce Avro messages as follows:</p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>kafka-avro-console-producer --broker-list localhost:9092 --topic my.Topic --property value.schema='{"type":"record","name":"myrecord","fields":[{"name":"f1","type":"string"}]}' --property schema.registry.url=http://localhost:8081</pre>
-</div>
+<p>Some components support dynamic <strong>properties</strong>. When this is the case, any properties specified in job conf for this component that is not a static property will be used as a dynamic property instead of throwing an error for a bad configuration.</p>
 </div>
 <div class="paragraph">
-<p>You can enter a few new values from the console as follows:</p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>{"f1": "value1"}</pre>
-</div>
+<p>In this section we will talk about those properties and how you can use them.</p>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="consumers">3. Consumers</h2>
+<h2 id="structure-of-a-dynamic-property">2. Structure of a dynamic property</h2>
 <div class="sectionbody">
-<div class="sect2">
-<h3 id="consume-messages">3.1. Consume messages</h3>
 <div class="paragraph">
-<p>You can begin a consumer from the beginning of the log as follows:</p>
+<p>Dynamic properties are really just like static properties but build on the fly. It allow to use both the name and the value of the property by the developer. For example instead of specifying :</p>
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic my-topic --from-beginning</pre>
+<pre>record.name: myName
+record.value: myValue</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>You can consume a single message as follows:</p>
+<p>You could specify :</p>
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic my-topic  --max-messages 1</pre>
+<pre>myName: myValue</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>You can consume a single message from __consumer_offsets as follows:</p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic __consumer_offsets --formatter 'kafka.coordinator.GroupMetadataManager$OffsetsMessageFormatter' --max-messages 1</pre>
+<p>The advantage is that you can have any number of dynamic property whereas you have to specify in advance all static properties&#8230;&#8203;</p>
 </div>
 </div>
+</div>
+<div class="sect1">
+<h2 id="usage-of-a-dynamic-properties">3. Usage of a dynamic properties</h2>
+<div class="sectionbody">
 <div class="paragraph">
-<p>You can consume and specify a consumer group as follows:</p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>bin/kafka-console-consumer.sh --topic my-topic --new-consumer --bootstrap-server localhost:9092 --consumer-property group.id=my-group</pre>
-</div>
-</div>
+<p>You can check the documentation of :ref:`com.hurence.logisland.processor.AddFields` processor that we will use in those example.</p>
 </div>
 <div class="sect2">
-<h3 id="consume-avro-messages">3.2. Consume Avro messages</h3>
-<div class="literalblock">
-<div class="content">
-<pre>You can consume 10 Avro messages from a topic named position-reports as follows:</pre>
+<h3 id="adding-a-field-which-is-concatenation-of-two-others-using-_-as-joining-string">3.1. Adding a field which is concatenation of two others using '_' as joining string</h3>
+<div class="paragraph">
+<p>set those dynamic properties in  AddFields processor :</p>
 </div>
-</div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>kafka-avro-console-consumer --topic position-reports --new-consumer --bootstrap-server localhost:9092 --from-beginning --property schema.registry.url=localhost:8081 --max-messages 10</pre>
+<pre class="highlightjs highlight"><code data-lang="yaml" class="language-yaml hljs">concat2fields: value1
+my_countries: 3
+my_countries.type: INT</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>You can consume all existing Avro messages from a topic named position-reports as follows:</p>
+<p>Then records processed by this processor would have 2 more fields out of this processors:</p>
 </div>
-<div class="literalblock">
-<div class="content">
-<pre>kafka-avro-console-consumer --topic position-reports --new-consumer --bootstrap-server localhost:9092 --from-beginning --property schema.registry.url=localhost:8081</pre>
+<div class="ulist">
+<ul>
+<li>
+<p>field 'concat2fields' of type String with value 'value1'</p>
+</li>
+<li>
+<p>field 'my_countries' of type Int with value '3'</p>
+</li>
+</ul>
 </div>
+<div class="paragraph">
+<p>By default if no type is specified by a dynamic property it use a type of String or the same type as old value if field already existed and you choose an overwrite policy.</p>
+</div>
+<div class="paragraph">
+<p>See :ref:`com.hurence.logisland.processor.AddFields` processor doc fore more information.</p>
 </div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="consumers-admin-operations">4. Consumers admin operations</h2>
+<h2 id="conclusion">4. Conclusion</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>You can list all groups as follows:</p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>kafka-consumer-groups --new-consumer --list --bootstrap-server localhost:9092</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>You can describe a Group named testgroup as follows:</p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>kafka-consumer-groups --bootstrap-server localhost:9092 --describe --group testgroup</pre>
-</div>
+<p>As you can see dynamic properties are very flexible but it&#8217;s usage is very dependent of the implementation of the component&#8217;s developer.</p>
 </div>
 </div>
 </div>

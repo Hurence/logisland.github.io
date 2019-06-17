@@ -1,0 +1,68 @@
+engine:
+  component: com.hurence.logisland.engine.spark.KafkaStreamProcessingEngine
+  configuration:
+    spark.app.name: MySuperApp
+    spark.master: local[*]
+    spark.driver.memory: 1g
+    spark.driver.cores: 
+    spark.executor.memory: 
+    spark.executor.cores: 
+    spark.executor.instances: 10
+    spark.yarn.queue: default
+    spark.yarn.maxAppAttempts: 
+    spark.yarn.am.attemptFailuresValidityInterval: 
+    spark.yarn.max.executor.failures: 
+    spark.yarn.executor.failuresValidityInterval: 
+    spark.task.maxFailures: 
+    spark.streaming.batchDuration: 
+    spark.serializer: 
+    spark.streaming.backpressure.enabled: 
+    spark.streaming.unpersist: 
+    spark.streaming.blockInterval: 
+    spark.streaming.kafka.maxRatePerPartition: 
+    spark.streaming.timeout: 
+    spark.streaming.kafka.maxRetries: 
+    spark.streaming.ui.retainedBatches: 
+    spark.streaming.receiver.writeAheadLog.enable: 
+    spark.ui.port: 
+  controllerServiceConfigurations:
+    - controllerService: 
+      component: 
+      type: 
+      documentation: 
+      configuration:
+        solr.cloud: true
+        solr.connection.string: 
+        solr.collection: 
+        solr.concurrent.requests: 
+        flush.interval: 
+        batch.size: 
+  streamConfigurations:
+    - stream: 
+      component: 
+      type: 
+      documentation: 
+      configuration:
+        kafka.input.topics: 
+        kafka.output.topics: 
+        kafka.error.topics: 
+        kafka.input.topics.serializer: 
+        kafka.output.topics.serializer: 
+        kafka.error.topics.serializer: 
+        kafka.metadata.broker.list: 
+        kafka.zookeeper.quorum: 
+        kafka.topic.autoCreate: 
+        kafka.topic.default.partitions: 
+        kafka.topic.default.replicationFactor: 
+      processorConfigurations:
+       - processor:
+         component: com.hurence.logisland.processor.ModifyId
+         configuration:
+           country: Netherlands
+           street_address: plik
+           postal_code: "K1M 1M4"
+
+
+          
+
+            

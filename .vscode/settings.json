@@ -1,0 +1,6 @@
+{
+    "yaml.schemaStore.enable": true,
+    "yaml.schemas": {
+        "./logisland-json-schema.json": "/*",
+    }
+}

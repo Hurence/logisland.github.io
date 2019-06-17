@@ -3,7 +3,6 @@
 
 <head>
   <title>Logisland Expression Language</title>
-  <script id="adobe_dtm" src="//www.redhat.com/dtm.js" type="text/javascript"></script>
   <script src="/docs/assets/javascript/highlightjs-pack.js" type="text/javascript"></script>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -20,6 +19,7 @@
   <!-- End Google Tag Manager -->
   <!-- Syntax highlighting -->
   <script>hljs.initHighlightingOnLoad();</script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
 </head>
 
 <body class="guides">
@@ -83,34 +83,7 @@ This guide covers:</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="prerequisites">1. Prerequisites</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>To complete this guide, you need:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>less than 15 minutes</p>
-</li>
-<li>
-<p>an IDE</p>
-</li>
-<li>
-<p>JDK 1.8+ installed with <code>JAVA_HOME</code> configured appropriately</p>
-</li>
-<li>
-<p>Apache Maven 3.5.3+</p>
-</li>
-<li>
-<p>The completed greeter application from the <a href="getting-started-guide">Getting Started Guide</a></p>
-</li>
-</ul>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="overview">2. Overview</h2>
+<h2 id="overview">1. Overview</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>All data in Logisland is represented by an abstraction called a <code>Record</code>. Those records contains fields of different types.</p>
@@ -122,7 +95,7 @@ Some of them support the expression language (EL). In this section we will talk 
 </div>
 </div>
 <div class="sect1">
-<h2 id="structure-of-a-logisland-expression">3. Structure of a Logisland Expression</h2>
+<h2 id="structure-of-a-logisland-expression">2. Structure of a Logisland Expression</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>The Logisland expression Language always begins with the start delimiter <code>${</code> and ends
@@ -161,8 +134,7 @@ that decide to evaluate your Logisland expression with which Record.</p>
 <i class="fa icon-tip" title="Tip"></i>
 </td>
 <td class="content">
-If you want to be able to use another ScriptEngine than mvel (javascript for example). You can open an issue to ask this feature.
-Feel free to make a Pull request as well to implement this new feature.
+If you want to be able to use another ScriptEngine than mvel (javascript for example). You can open an issue to ask this feature. Feel free to make a Pull request as well to implement this new feature.
 </td>
 </tr>
 </table>
@@ -177,7 +149,7 @@ Feel free to make a Pull request as well to implement this new feature.
 </div>
 </div>
 <div class="sect1">
-<h2 id="adding-a-field-which-is-concatenation-of-two-others-using-_-as-joining-string">4. Adding a field which is concatenation of two others using '_' as joining string</h2>
+<h2 id="adding-a-field-which-is-concatenation-of-two-others-using-_-as-joining-string">3. Adding a field which is concatenation of two others using '_' as joining string</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>set those dynamic properties in <code>AddFields</code> processor :</p>
@@ -216,7 +188,7 @@ my_employees_by_countries.type: map</code></pre>
 </div>
 </div>
 <div class="sect1">
-<h2 id="conclusion">5. Conclusion</h2>
+<h2 id="conclusion">4. Conclusion</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>As you can see the language expression is very flexible but it&#8217;s usage is very dependent of the implementation of the component&#8217;s developer.</p>
@@ -313,6 +285,7 @@ my_employees_by_countries.type: map</code></pre>
         _satellite.pageBottom();
     }
   </script>
+  
 </body>
 
 </html>

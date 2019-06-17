@@ -15,6 +15,7 @@ permalink: /guides/
 - [Using Expression language]({{site.baseurl}}/guides/el-guide)
 - [Using Cache & Enrichers]({{site.baseurl}}/guides/enrichment-guide)
 - [Threshold Alerting]({{site.baseurl}}/guides/threshold-alerting-guide)
+- [Dynamic properties]({{site.baseurl}}/guides/dynamic-properties-guide)
 
 ### Data Stores
 
@@ -110,6 +111,13 @@ This guide covers:
 * define alerting business rules as MVEL functions
 
 <a href="{{site.baseurl}}/guides/threshold-alerting-guide" class="button-cta secondary">READ THE GUIDE</a>
+</div>
+
+<div class="guide-item" markdown="1">
+## Dynamic properties
+Learn how to use Dynamic Properties in configurations
+
+<a href="{{site.baseurl}}/guides/dynamic-properties-guide" class="button-cta secondary">READ THE GUIDE</a>
 </div>
 
 </div>
