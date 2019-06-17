@@ -33,6 +33,7 @@ permalink: /guides/
 ### Writing Extensions
 
 - [Logisland Java API]({{site.baseurl}}/guides/logisland-api-guide)
+- [Logisland REST API]({{site.baseurl}}/guides/logisland-rest-api-guide)
 
 ### Time Series
 

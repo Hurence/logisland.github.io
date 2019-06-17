@@ -4,11 +4,11 @@ links:
   - title: Navigation
     subfolderitems:
       - page: Home
-        url: /
+        url: /docs
       - page: Guides
-        url: /guides
+        url: /docs/guides
       - page: Get Started
-        url: /get-started
+        url: /docs/get-started
   - title: Contribute
     subfolderitems:
       - page: Follow us
@@ -22,7 +22,7 @@ links:
       - page: Google&nbsp;Groups
         url: https://groups.google.com/forum/#!forum/logisland-dev
       - page: FAQ
-        url: /faq
+        url: /docs/faq
 
 more_links:
   - title: Logisland is proudly made of
