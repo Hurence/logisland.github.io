@@ -13,7 +13,7 @@ layout: base
 
   <div class="grid__item width-4-12 width-12-12-m toc">
     <div id="users">
-      <input class="search" style="color: black" placeholder="Search" onkeypress="bim()"/>
+      <input class="search" style="color: black" placeholder="filter by" onkeypress="bim()"/>
       <div class="list">
           {% for extension in site.data.extensions.extensions %}
   
@@ -38,17 +38,39 @@ layout: base
 
         function bim(){
        
-       
+          var dict = {};
+  
+          var extensions = document.getElementsByClassName("extension");
+          for (var i = 0; i < extensions.length; i++) {
+            dict[extensions[i].id] = 0;
+            extensions[i].style.display = "none"
+          }
 
           var list = document.getElementsByClassName("ext-row");
           for (var i = 0; i < list.length; i++) {
             list[i].style.display = "none"
           }
           userList.visibleItems.forEach(function(element) {
-            document.getElementById(element._values['class']).style.display = "block"
+            var tmp = document.getElementById(element._values['class'])
+            if(tmp !=  null){
+              tmp.style.display = "block";
+              dict[element._values['category']] = 1;
+            }
+              
+
+            
           });
 
-          console.log(userList.visibleItems);
+
+          for (var i = 0; i < extensions.length; i++) {
+            console.log(extensions[i]);
+            if( dict[extensions[i].id] == 1){
+              
+              extensions[i].style.display = "block"
+            }
+          }
+
+          //console.log(dict);
 
          
         }
@@ -74,21 +96,21 @@ Explore the wide breath of technologies Logisland applications can be made with.
       <ul class="dashed cat-extensions"></ul>
           {% for item in site.data.extensions.categories %}
 
-            <div><hr><h2 id="{{ item }}">{{ item }}</h2>
+            <div class="extension" id="{{ item }}"><hr><h2 class="text-cyan">{{ item }}</h2>
               
                   
                 {% for extension in site.data.extensions.extensions %}
                 {% if item == extension.category %}
                 <div class="ext-row" id="{{ extension.class }}">
-                    <h3 id="{{ extension.name }}" >{{ extension.name }}</h3>
+                    <h3 id="{{ extension.name }}" style="color: #F0CA4D">{{ extension.name }}</h3>
                     {% if extension.description %}
                       <p class="description">{{ extension.description }}</p>
                     {% endif %}
                     {% if extension.groupId %}
-                      <p class="text-cyan" title="Maven coordinates">{{ extension.groupId }}:{{ extension.artifactId }}</p>
+                      <p style="color: #E37B40" title="Maven coordinates">{{ extension.groupId }}:{{ extension.artifactId }}</p>
                     {% endif %}
                     <ul>
-                      {% if extension.module %}<li class="text-cyan" title="Maven coordinates">{{ extension.module }}</li>{% endif %}
+                      {% if extension.module %}<li style="color: #E37B40" title="Maven coordinates">{{ extension.module }}</li>{% endif %}
                       {% if extension.class %} <li>{{ extension.class }}</li>{% endif %}
                     </ul>
                     
