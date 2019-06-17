@@ -27,11 +27,14 @@ permalink: /guides/
 
 ### Operation
 
+- [Logisland Monitoring]({{site.baseurl}}/guides/application-monitoring-guide)
 - [Kafka Operations]({{site.baseurl}}/guides/kafka-operations-guide)
 - [Kafka Best Practices]({{site.baseurl}}/guides/kafka-best-practices-guide)
 
-### Writing Extensions
+### Extensions
 
+
+- [Using Components]({{site.baseurl}}/guides/logisland-components-guide)
 - [Logisland Java API]({{site.baseurl}}/guides/logisland-api-guide)
 - [Logisland REST API]({{site.baseurl}}/guides/logisland-rest-api-guide)
 
