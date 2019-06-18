@@ -27,6 +27,7 @@ permalink: /guides/
 
 ### Operation
 
+- [Kubernetes Deployment]({{site.baseurl}}/guides/kubernetes1-guide)
 - [Logisland Monitoring]({{site.baseurl}}/guides/application-monitoring-guide)
 - [Kafka Operations]({{site.baseurl}}/guides/kafka-operations-guide)
 - [Kafka Best Practices]({{site.baseurl}}/guides/kafka-best-practices-guide)

@@ -4,12 +4,6 @@ title: Logisland - Event Aggregation
 permalink: /guides/event-aggregation-guide
 ---
 
-////
-This guide is maintained in the main Logisland repository
-and pull requests should be submitted there:
-https://github.com/hurence/logisland/tree/master/docs/src/main/asciidoc
-////
-
 include::./attributes.adoc[]
 = {project-name} - Event Aggregation
 

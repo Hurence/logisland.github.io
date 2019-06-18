@@ -1,0 +1,1459 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Deploying on Kubernetes and OpenShift</title>
+  <script src="/docs/assets/javascript/highlightjs-pack.js" type="text/javascript"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Logisland: Supersonic Subatomic Java">
+  <link rel="shortcut icon" type="image/png" href="/docs/favicon.ico" >
+  <link rel="stylesheet" href="/docs/assets/css/main.css" />
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css" integrity="sha384-lKuwvrZot6UHsBSfcMvOkWwlCMgc0TaWr+30HWe3a4ltaBwTZhyTEggF5tJv8tbt" crossorigin="anonymous">
+  <!-- Google Tag Manager -->
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-T9XHGDR');</script>
+  <!-- End Google Tag Manager -->
+  <!-- Syntax highlighting -->
+  <script>hljs.initHighlightingOnLoad();</script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+</head>
+
+<body class="guides">
+  <!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-T9XHGDR"
+  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+  <!-- End Google Tag Manager (noscript) -->
+
+  <div class="content">
+    <div class="navigation-wrapper">
+  <div class="width-12-12">
+    <div class="header navigation">
+      <div class="logo-wrapper">
+        <a href="/docs/"><img src="/docs/assets/images/logisland-logo.png" class="project-logo" title="Logisland"></a>
+      </div>
+      <div class="nav-container">
+        <nav>
+          <div class="nav-mobile"><a id="nav-toggle" href="#!"><span></span></a></div>
+          <ul class="nav-list">
+            <li>
+              <a href="/docs/get-started/" class="">Get Started</a>
+            </li>
+            <li>
+              <a href="/docs/guides/" class="active">Guides</a>
+            </li>
+            <li>
+              <a href="/docs/extensions/" class="">Extensions</a>
+            </li>
+            <li>
+              <a href="/docs/community/" class="">Community</a>
+            </li>
+            <li>
+              <a href="/docs/blog/" class="">Blog</a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </div>
+</div>
+
+    <div class="guides">
+  <div class="width-12-12">
+    <h1 class="text-caps">Deploying on Kubernetes and OpenShift</h1>
+    <div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>This guide covers:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The deployment of the application to Kubernetes</p>
+</li>
+<li>
+<p>The deployment of the application to OpenShift</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="prerequisites">1. Prerequisites</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>For this guide you need:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>roughly 10 minutes (20 minutes if you want to deploy the application on both platforms)</p>
+</li>
+<li>
+<p>having access to a Kubernetes and/or OpenShift cluster. Minikube and Minishift are valid options.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="solution">2. Solution</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>We recommend to follow the instructions in the next sections and build the application step by step.
+However, you can go right to the completed example.</p>
+</div>
+<div class="paragraph">
+<p>Clone the Git repository: <code>git clone <a href="https://github.com/hurence/logisland-quickstarts.git" class="bare">https://github.com/hurence/logisland-quickstarts.git</a></code>, or download an <a href="https://github.com/hurence/logisland-quickstarts/archive/master.zip">archive</a>.</p>
+</div>
+<div class="paragraph">
+<p>The solution is located in the <code>kube-deploy</code> directory.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="run-logisland-stream-within-kubernetes">3. Run Logisland stream within Kubernetes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This is the begining of a multiple part series of tutorials going through setting up a scalable Apache log indexation to Elasticsearch in kubernetes. This guide will bring you to a fully functionnal Kubernetes logisland setup.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Part 0 - <a href="#initial-setup">Initial Setup</a></p>
+</li>
+<li>
+<p>Part 1 - <a href="#elasticsearch-setup">Elasticsearch Setup</a></p>
+</li>
+<li>
+<p>Part 2 - <a href="#kibana-setup">Kibana Setup</a></p>
+</li>
+<li>
+<p>Part 3 - <a href="#zookeeper-setup">Zookeeper Setup</a></p>
+</li>
+<li>
+<p>Part 4 - <a href="#kafka-setup">Kafka Setup</a></p>
+</li>
+<li>
+<p>Part 5 - <a href="#logisland-setup">Logisland Setup</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Kafka and Zookeeper can be manually scaled up at any time by altering and re-applying configuration.
+Kubernetes also provides features for autoscaling, read more about auto scaling Kubernetes Pods should that be a requirement.</p>
+</div>
+<div class="sect2">
+<h3 id="sources">3.1. Sources</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://imti.co/kafka-kubernetes/" class="bare">https://imti.co/kafka-kubernetes/</a></p>
+</li>
+<li>
+<p><a href="https://github.com/kiritbasu/Fake-Apache-Log-Generator" class="bare">https://github.com/kiritbasu/Fake-Apache-Log-Generator</a></p>
+</li>
+<li>
+<p><a href="https://blog.gruntwork.io/automated-testing-for-kubernetes-and-helm-charts-using-terratest-a4ddc4e67344" class="bare">https://blog.gruntwork.io/automated-testing-for-kubernetes-and-helm-charts-using-terratest-a4ddc4e67344</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="initial-setup">4. Initial Setup</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>First of all you&#8217;ll need a Kubernetes cluster or a minikube cluster (<a href="https://kubernetes.io/docs/tasks/tools/install-minikube/" class="bare">https://kubernetes.io/docs/tasks/tools/install-minikube/</a> ).
+For the first option I would highly recommend to follow the Hello Minikube tutorial for those who don&#8217;t have any background with Kubernetes.
+This will help to get minikube and kubectl commands installed.
+(Minikube is the local development Kubernetes environment and kubectl is the command line interface used to interact with Kubernetes cluster).</p>
+</div>
+<div class="sect2">
+<h3 id="shaving-the-yak">4.1. Shaving the Yak!</h3>
+<div class="paragraph">
+<p>One or two commands that used in this post will be mac or linux specific. Reference this guide to get more up to date and OS specific commands.
+Once you’ve got the tools all installed, you can now follow along these steps to create a single node Elasticsearch cluster.</p>
+</div>
+<div class="paragraph">
+<p>If you are using Minikube, make sure that its started properly by running this command</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="shell" class="language-shell hljs"># on mac:
+minikube start --vm-driver=hyperkit
+
+# on linux (use virtualbox by default, so you have to install it) :
+minikube start
+
+# Now set the Minikube context.
+# The context is what determines which cluster kubectl is interacting with.
+kubectl config use-context minikube
+
+# Verify that kubectl is configured to communicate with your cluster:
+kubectl cluster-info
+
+# To view the cluster nodes
+kubectl get nodes</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="kubernetes-dashboard">4.2. Kubernetes Dashboard</h3>
+<div class="paragraph">
+<p>Minikube includes the kubernetes dashboard as an addon which you can enable.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>minikube addons list</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>returns</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="yaml" class="language-yaml hljs">- default-storageclass: enabled
+- coredns: disabled
+- kube-dns: enabled
+- ingress: disabled
+- registry: disabled
+- registry-creds: disabled
+- addon-manager: enabled
+- dashboard: enabled
+- storage-provisioner: enabled
+- heapster: disabled
+- efk: disabled</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can enable an addon using:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>minikube addons enable dashboard</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can then open the dashboard with command</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>minikube dashboard</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Please note that on some virtual environments (like VirtualBox) the minikube VM may start with too few resources (you should allocate at least 4 CPUs and 6Go RAM)</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="kubernetes-setup">4.3. Kubernetes setup</h3>
+<div class="paragraph">
+<p>The best you can do is to follow the official guides to get the following tools up and running.</p>
+</div>
+<div class="paragraph">
+<p>The Kubernetes command-line tool, <strong>kubectl</strong>, allows you to run commands against Kubernetes clusters. You can use kubectl to deploy applications, inspect and manage cluster resources, and view logs. `setup kubectl &lt;<a href="https://kubernetes.io/docs/tasks/tools/install-kubectl/&gt;`_" class="bare">https://kubernetes.io/docs/tasks/tools/install-kubectl/&gt;`_</a></p>
+</div>
+<div class="paragraph">
+<p>Minikube, a tool that runs a single-node Kubernetes cluster in a virtual machine on your laptop is the easiest way to start with. `setup minikube &lt;<a href="https://kubernetes.io/docs/tasks/tools/install-minikube/&gt;`_" class="bare">https://kubernetes.io/docs/tasks/tools/install-minikube/&gt;`_</a></p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+    Deciding where to run Kubernetes depends on what resources you have available and how much flexibility you need. You can run Kubernetes almost anywhere, from your laptop to VMs on a cloud provider to a rack of bare metal servers. You can also set up a fully-managed cluster by running a single command or craft your own customized cluster on your bare metal servers. `setup kubernetes &lt;<a href="https://kubernetes.io/docs/setup/&gt;`_" class="bare">https://kubernetes.io/docs/setup/&gt;`_</a>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="namespace">4.4. Namespace</h3>
+<div class="paragraph">
+<p>In this guide, I use the fictional namespace <code>logisland</code>. You can create this namespace in your cluster or use your own.</p>
+</div>
+<div class="paragraph">
+<p>Create the file <code>namespace.yml</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="yaml" class="language-yaml hljs">apiVersion: v1
+kind: Namespace
+metadata:
+    name: logisland</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Apply the configuration:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>kubectl create -f ./namespace.yml</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you wish to use your own namespace for this Kafka installation, be sure to replace <code>logisland</code> in the configurations below.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="persistent-volumes">4.5. Persistent volumes</h3>
+<div class="paragraph">
+<p>In Kubernetes, managing storage is a distinct problem from managing compute.
+The PersistentVolume subsystem provides an API for users and administrators that abstracts details of how storage is provided from how it is consumed.
+To do this we introduce two new API resources: PersistentVolume and PersistentVolumeClaim.</p>
+</div>
+<div class="paragraph">
+<p>A <strong>PersistentVolume (PV)</strong> is a piece of storage in the cluster that has been provisioned by an administrator.
+It is a resource in the cluster just like a node is a cluster resource. PVs are volume plugins like Volumes,
+but have a lifecycle independent of any individual pod that uses the PV. This API object captures the details of the implementation of the storage,
+ be that NFS, iSCSI, or a cloud-provider-specific storage system.</p>
+</div>
+<div class="paragraph">
+<p>A <strong>PersistentVolumeClaim (PVC)</strong> is a request for storage by a user. It is similar to a pod. Pods consume node resources and PVCs consume PV resources.
+Pods can request specific levels of resources (CPU and Memory).
+Claims can request specific size and access modes (e.g., can be mounted once read/write or many times read-only).</p>
+</div>
+<div class="paragraph">
+<p>Create the local folders where you want to store your files (change this to wherever you want to store data on your nodes) :</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>mkdir /tmp/data</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Create the file <code>pv-volume.yml</code></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="yaml" class="language-yaml hljs">kind: PersistentVolume
+apiVersion: v1
+metadata:
+    name: datadir
+    labels:
+    app: kafka
+    type: local
+    namespace: logisland
+spec:
+    storageClassName: manual
+    capacity:
+    storage: 10Gi
+    accessModes:
+    - ReadWriteOnce
+    hostPath:
+    path: "/tmp/data"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Apply the configuration:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>kubectl create -f ./pv-volume.yml</pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="configuration-maps">4.6. Configuration maps</h3>
+<div class="paragraph">
+<p>We will need a few configuration variables in our setup to bind containers together and define some environment variables.
+The first config map is specific to <code>loggen</code> tool which is a wrapped python program that sends fake generated apache logs to a given Kafka topic at a specified rate.
+The second one is a set of settings that will be used by the <code>logisland</code> job in order to configure itself. We&#8217;ll go into deeper details in the last section of this post.</p>
+</div>
+<div class="paragraph">
+<p>Create the file <code>config-maps.yml</code> with the following content</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="yaml" class="language-yaml hljs">apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: special-config
+    namespace: logisland
+data:
+    loggen.sleep: '0.2'
+    loggen.num: '0'
+    loggen.topic: logisland_raw
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: logisland-config
+    namespace: logisland
+data:
+    kafka.brokers: kafka:9092
+    zk.quorum: zookeeper:2181
+    es.hosts: elasticsearch:9300
+    es.cluster.name: es-logisland</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Apply the configuration:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>kubectl create -f ./config-maps.yml</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="elasticsearch-setup">5. Elasticsearch Setup</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="single-node-elasticsearch-cluster">5.1. Single Node Elasticsearch Cluster</h3>
+<div class="paragraph">
+<p>Create the file <code>elasticsearch-service.yml</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="yaml" class="language-yaml hljs">apiVersion: v1
+kind: Service
+metadata:
+    name: elasticsearch
+    namespace: logisland
+    labels:
+    component: elasticsearch
+spec:
+    type: ClusterIP
+    selector:
+    component: elasticsearch
+    ports:
+    - name: http
+        port: 9200
+        protocol: TCP
+    - name: tcp
+        port: 9300
+        protocol: TCP</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Apply the configuration:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>kubectl create -f ./elasticsearch-service.yml</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Create the file <code>elasticsearch-deployment.yml</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="yaml" class="language-yaml hljs">apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+    name: elasticsearch
+    namespace: logisland
+spec:
+    selector:
+    matchLabels:
+        component: elasticsearch
+    template:
+    metadata:
+        labels:
+        component: elasticsearch
+    spec:
+        containers:
+        - name: elasticsearch
+            image: docker.elastic.co/elasticsearch/elasticsearch:5.4.3
+            env:
+            - name: discovery.type
+                value: single-node
+            - name: cluster.name
+                value: "es-logisland"
+            - name: xpack.security.enabled
+                value: "false"
+            ports:
+            - containerPort: 9200
+                name: http
+                protocol: TCP
+            - containerPort: 9300
+                name: tcp
+                protocol: TCP</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Apply the configuration:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>kubectl create -f ./elasticsearch-deployment.yml</pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="expose-the-cluster">5.2. Expose the cluster</h3>
+<div class="paragraph">
+<p>We can verify that the cluster is running by looking at the logs. But, let’s check if elasticsearch api is responding first.</p>
+</div>
+<div class="paragraph">
+<p>In a seperate shell window, excute the following to start a proxy into Kubernetes cluster.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>kubectl -n logisland port-forward svc/elasticsearch 9200:9200</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now, back in the other window, lets execute a curl command to get the response from the pod via the proxy.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>curl http://localhost:9200</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Outputs:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="json" class="language-json hljs">{
+    "name" : "19SlwE4",
+    "cluster_name" : "es-logisland",
+    "cluster_uuid" : "ef41SIbWRHmSDoDhcFA9WA",
+    "version" : {
+    "number" : "5.4.3",
+    "build_hash" : "eed30a8",
+    "build_date" : "2017-06-22T00:34:03.743Z",
+    "build_snapshot" : false,
+    "lucene_version" : "6.5.1"
+    },
+    "tagline" : "You Know, for Search"
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Great, everything is working.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="kibana-setup">6. Kibana Setup</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Let’s try to setup kibana pointing to our elasticsearch single node cluster.</p>
+</div>
+<div class="paragraph">
+<p>Create the file <code>kibana-service.yml</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="yaml" class="language-yaml hljs">apiVersion: v1
+kind: Service
+metadata:
+    name: kibana
+    namespace: logisland
+    labels:
+    component: kibana
+spec:
+    type: NodePort
+    selector:
+    component: kibana
+    ports:
+    - name: http
+        port: 5601
+        targetPort: 5601
+        nodePort: 30123
+        protocol: TCP</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Apply the configuration:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>kubectl create -f ./kibana-service.yml</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Create the file <code>kibana-deployment.yml</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="yaml" class="language-yaml hljs">apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+    name: kibana
+    namespace: logisland
+spec:
+    selector:
+    matchLabels:
+        component: kibana
+    template:
+    metadata:
+        labels:
+        component: kibana
+    spec:
+        containers:
+        - name: kibana
+            image: docker.elastic.co/kibana/kibana:5.4.3
+            env:
+            - name: ELASTICSEARCH_URL
+                value: http://elasticsearch:9200
+            - name: XPACK_SECURITY_ENABLED
+                value: "true"
+            ports:
+            - containerPort: 5601
+                name: http
+                protocol: TCP</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Apply the configuration:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>kubectl create -f ./kibana-deployment.yml</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To access kibana through your localhost forward the port</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>kubectl -n logisland port-forward svc/kibana 5601:5601</pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="zookeeper-setup">7. Zookeeper Setup</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Kafka requires Zookeeper for maintaining configuration information, naming, providing distributed synchronization, and providing group services to coordinate its nodes.</p>
+</div>
+<div class="sect2">
+<h3 id="zookeeper-headless-service">7.1. Zookeeper Headless Service</h3>
+<div class="paragraph">
+<p>Kubernetes Services are persistent and provide a stable and reliable way to connect to Pods.</p>
+</div>
+<div class="paragraph">
+<p>Setup a Kubernetes Service named kafka-zookeeper in namespace <code>logisland</code>. The kafka-zookeeper service resolves the domain name kafka-zookeeper to an internal ClusterIP.
+The automatically assigned ClusterIP uses Kubernetes internal proxy to load balance calls to any Pods found from the configured selector,
+in this case, app: kafka-zookeeper.</p>
+</div>
+<div class="paragraph">
+<p>After setting up the kafka-zookeeper Service, a DNS lookup from within the cluster may produce a result similar to the following:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="shell" class="language-shell hljs"># nslookup kafka-zookeeper
+Server:        10.96.0.10
+Address:    10.96.0.10#53
+
+Name:    kafka-zookeeper.logisland.svc.cluster.local
+Address: 10.103.184.71</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In the example above, 10.103.184.71 is the internal IP address of the <strong>* kafka-zookeeper</strong> service itself and proxies calls
+to one of the Zookeeper Pods it finds labeled app: kafka-zookeeper. At this point, no Pods are available until added further down.
+However, the service finds them when they become active.</p>
+</div>
+<div class="paragraph">
+<p>Create the file <code>zookeeper-service.yml</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="yaml" class="language-yaml hljs">apiVersion: v1
+kind: Service
+metadata:
+    name: kafka-zookeeper
+    namespace: logisland
+spec:
+    ports:
+    - name: client
+        port: 2181
+        protocol: TCP
+        targetPort: client
+    selector:
+    app: kafka-zookeeper
+    sessionAffinity: None
+    type: ClusterIP</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Apply the configuration:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>kubectl create -f ./zookeeper-service.yml</pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="zookeeper-headless-service-2">7.2. Zookeeper Headless Service</h3>
+<div class="paragraph">
+<p>A Kubernetes Headless Service does not resolve to a single IP; instead, Headless Services returns the IP addresses of any Pods found by their selector, in this case, Pods labeled app: kafka-zookeeper.</p>
+</div>
+<div class="paragraph">
+<p>Once Pods labeled app: kafka-zookeeper are running, this Headless Service returns the results of an in-cluster DNS lookup similar to the following:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="shell" class="language-shell hljs"># nslookup kafka-zookeeper
+Server:        10.96.0.10
+Address:    10.96.0.10#53
+
+Name:    kafka-zookeeper-headless.logisland.svc.cluster.local
+Address: 192.168.108.150
+Name:    kafka-zookeeper-headless.logisland.svc.cluster.local
+Address: 192.168.108.181
+Name:    kafka-zookeeper-headless.logisland.svc.cluster.local
+Address: 192.168.108.132</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In the example above, the Kubernetes Service kafka-zookeeper-headless returned the internal IP addresses of three individual Pods.</p>
+</div>
+<div class="paragraph">
+<p>At this point, no Pod IPs can be returned until the Pods are configured in the StatefulSet further down.</p>
+</div>
+<div class="paragraph">
+<p>Create the file <code>zookeeper-service-headless.yml</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="yaml" class="language-yaml hljs">apiVersion: v1
+kind: Service
+metadata:
+    name: kafka-zookeeper-headless
+    namespace: logisland
+spec:
+    #clusterIP: None
+    ports:
+    - name: client
+        port: 2181
+        protocol: TCP
+        targetPort: 2181
+    - name: election
+        port: 3888
+        protocol: TCP
+        targetPort: 3888
+    - name: server
+        port: 2888
+        protocol: TCP
+        targetPort: 2888
+    selector:
+    app: kafka-zookeeper
+    sessionAffinity: None
+    type: ClusterIP</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Apply the configuration:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>kubectl create -f ./zookeeper-service-headless.yml</pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="zookeeper-statefulset">7.3. Zookeeper StatefulSet</h3>
+<div class="paragraph">
+<p>Kubernetes StatefulSets offer stable and unique network identifiers, persistent storage, ordered deployments, scaling,
+deletion, termination, and automated rolling updates.</p>
+</div>
+<div class="paragraph">
+<p>Unique network identifiers and persistent storage are essential for stateful cluster nodes in systems like Zookeeper and
+Kafka. While it seems strange to have a coordinator like Zookeeper running inside a Kubernetes cluster sitting on its
+own coordinator Etcd,
+it makes sense since these systems are built to run independently. Kubernetes supports running services like Zookeeper
+and Kafka with features like headless services and stateful sets which demonstrates the flexibility of Kubernetes as
+both a microservices platform and a type of virtual infrastructure.</p>
+</div>
+<div class="paragraph">
+<p>The following configuration creates three kafka-zookeeper Pods, kafka-zookeeper-0, kafka-zookeeper-1, kafka-zookeeper-2
+and can be scaled to as many as desired. Ensure that the number of specified replicas matches the environment variable
+ZK_REPLICAS specified in the container spec.</p>
+</div>
+<div class="paragraph">
+<p>Pods in this StatefulSet run the Zookeeper Docker image gcr.io/google_samples/k8szk:v3, which is a sample image provided
+by Google for testing GKE, it is recommended to use custom and maintained Zookeeper image once you are familiar with this setup.</p>
+</div>
+<div class="paragraph">
+<p>Create the file <code>zookeeper-statefulset.yml</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="yaml" class="language-yaml hljs">apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+    name: kafka-zookeeper
+    namespace: logisland
+spec:
+    podManagementPolicy: OrderedReady
+    replicas: 3
+    revisionHistoryLimit: 1
+    selector:
+    matchLabels:
+        app: kafka-zookeeper
+    serviceName: kafka-zookeeper-headless
+    template:
+    metadata:
+        labels:
+        app: kafka-zookeeper
+    spec:
+        containers:
+        - command:
+            - /bin/bash
+            - -xec
+            - zkGenConfig.sh &amp;&amp; exec zkServer.sh start-foreground
+            env:
+            - name: ZK_REPLICAS
+                value: "3"
+            - name: JMXAUTH
+                value: "false"
+            - name: JMXDISABLE
+                value: "false"
+            - name: JMXPORT
+                value: "1099"
+            - name: JMXSSL
+                value: "false"
+            - name: ZK_CLIENT_PORT
+                value: "2181"
+            - name: ZK_ELECTION_PORT
+                value: "3888"
+            - name: ZK_HEAP_SIZE
+                value: 1G
+            - name: ZK_INIT_LIMIT
+                value: "5"
+            - name: ZK_LOG_LEVEL
+                value: INFO
+            - name: ZK_MAX_CLIENT_CNXNS
+                value: "60"
+            - name: ZK_MAX_SESSION_TIMEOUT
+                value: "40000"
+            - name: ZK_MIN_SESSION_TIMEOUT
+                value: "4000"
+            - name: ZK_PURGE_INTERVAL
+                value: "0"
+            - name: ZK_SERVER_PORT
+                value: "2888"
+            - name: ZK_SNAP_RETAIN_COUNT
+                value: "3"
+            - name: ZK_SYNC_LIMIT
+                value: "10"
+            - name: ZK_TICK_TIME
+                value: "2000"
+            image: gcr.io/google_samples/k8szk:v3
+            imagePullPolicy: IfNotPresent
+            livenessProbe:
+            exec:
+                command:
+                - zkOk.sh
+            failureThreshold: 3
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+            name: zookeeper
+            ports:
+            - containerPort: 2181
+                name: client
+                protocol: TCP
+            - containerPort: 3888
+                name: election
+                protocol: TCP
+            - containerPort: 2888
+                name: server
+                protocol: TCP
+            readinessProbe:
+            exec:
+                command:
+                - zkOk.sh
+            failureThreshold: 3
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+            resources: {}
+            terminationMessagePath: /dev/termination-log
+            terminationMessagePolicy: File
+            volumeMounts:
+            - mountPath: /var/lib/zookeeper
+                name: data
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext:
+        fsGroup: 1000
+        runAsUser: 1000
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - emptyDir: {}
+            name: data
+    updateStrategy:
+    type: OnDelete</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Apply the configuration:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>kubectl create -f ./zookeeper-statefulset.yml</pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="zookeeper-poddisruptionbudget">7.4. Zookeeper PodDisruptionBudget</h3>
+<div class="paragraph">
+<p>PodDisruptionBudget can help keep the Zookeeper service stable during Kubernetes administrative events such as draining
+a node or updating Pods.</p>
+</div>
+<div class="paragraph">
+<p>From the official documentation for PDB (PodDisruptionBudget):</p>
+</div>
+<div class="paragraph">
+<p>A PDB specifies the number of replicas that an application can tolerate having, relative to how many it is intended to
+have. For example, a Deployment which has a .spec.replicas: 5 is supposed to have 5 pods at any given time. If its PDB
+allows for there to be 4 at a time, then the Eviction API will allow voluntary disruption of one, but not two pods, at a time.</p>
+</div>
+<div class="paragraph">
+<p>The configuration below tells Kubernetes that we can only tolerate one of our Zookeeper Pods down at any given time.
+maxUnavailable may be set to a higher number if we increase the number of Zookeeper Pods in the StatefulSet.</p>
+</div>
+<div class="paragraph">
+<p>Create the file <code>zookeeper-disruptionbudget.yml</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="yaml" class="language-yaml hljs">apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+    labels:
+    app: kafka-zookeeper
+    name: kafka-zookeeper
+    namespace: logisland
+spec:
+    maxUnavailable: 1
+    selector:
+    matchLabels:
+        app: kafka-zookeeper</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Apply the configuration:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>kubectl create -f ./zookeeper-disruptionbudget.yml</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="kafka-setup">8. Kafka Setup</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Once Zookeeper is up and running we have satisfied the requirements for Kafka. Kafka is set up in a similar
+configuration to Zookeeper, utilizing a Service, Headless Service and a StatefulSet.</p>
+</div>
+<div class="sect2">
+<h3 id="kafka-service">8.1. Kafka Service</h3>
+<div class="paragraph">
+<p>The following Service provides a persistent internal Cluster IP address that proxies and load balance requests to Kafka
+Pods found with the label app: kafka and exposing the port 9092.</p>
+</div>
+<div class="paragraph">
+<p>Create the file <code>kafka-service.yml</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="yaml" class="language-yaml hljs">apiVersion: v1
+kind: Service
+metadata:
+    name: kafka
+    namespace: logisland
+spec:
+    ports:
+    - name: broker
+        port: 9092
+        protocol: TCP
+        targetPort: kafka
+    selector:
+    app: kafka
+    sessionAffinity: None
+    type: ClusterIP</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Apply the configuration:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>kubectl create -f ./kafka-service.yml</pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="kafka-headless-service">8.2. Kafka Headless Service</h3>
+<div class="paragraph">
+<p>The following Headless Service provides a list of Pods and their internal IPs found with the label app: kafka and exposing the port 9092. The previously created Service: kafka always returns a persistent IP assigned at the creation time of the Service. The following kafka-headless services return the domain names and IP address of individual Pods and are liable to change as Pods are added, removed or updated.</p>
+</div>
+<div class="paragraph">
+<p>Create the file <code>kafka-service-headless.yml</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="yaml" class="language-yaml hljs">apiVersion: v1
+kind: Service
+metadata:
+    name: kafka-headless
+    namespace: logisland
+spec:
+    #clusterIP: None
+    ports:
+    - name: broker
+        port: 9092
+        protocol: TCP
+        targetPort: 9092
+    selector:
+    app: kafka
+    sessionAffinity: None
+    type: ClusterIP</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Apply the configuration:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>kubectl create -f ./kafka-service-headless.yml</pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="kafka-statefulset">8.3. Kafka StatefulSet</h3>
+<div class="paragraph">
+<p>The following StatefulSet deploys Pods running the confluentinc/cp-kafka:4.1.2-2 Docker image from Confluent.</p>
+</div>
+<div class="paragraph">
+<p>Each pod is assigned 1Gi of storage using the rook-block storage class. See Rook.io for more information on file, block, and object storage services for cloud-native environments.</p>
+</div>
+<div class="paragraph">
+<p>Create the file <code>kafka-statefulset.yml</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="yaml" class="language-yaml hljs">apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+    labels:
+    app: kafka
+    name: kafka
+    namespace: logisland
+spec:
+    podManagementPolicy: OrderedReady
+    replicas: 3
+    revisionHistoryLimit: 1
+    selector:
+    matchLabels:
+        app: kafka
+    serviceName: kafka-headless
+    template:
+    metadata:
+        labels:
+        app: kafka
+    spec:
+        containers:
+        - command:
+            - sh
+            - -exc
+            - |
+                unset KAFKA_PORT &amp;&amp; \
+                export KAFKA_BROKER_ID=${HOSTNAME##*-} &amp;&amp; \
+                export KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://${POD_IP}:9092 &amp;&amp; \
+                exec /etc/confluent/docker/run
+            env:
+            - name: POD_IP
+                valueFrom:
+                fieldRef:
+                    apiVersion: v1
+                    fieldPath: status.podIP
+            - name: KAFKA_HEAP_OPTS
+                value: -Xmx1G -Xms1G
+            - name: KAFKA_ZOOKEEPER_CONNECT
+                value: kafka-zookeeper:2181
+                # value: 10.105.213.202:2181
+                # value: ${KAFKA_ZOOKEEPER_SERVICE_HOST}:2181
+            - name: KAFKA_LOG_DIRS
+                value: /opt/kafka/data/logs
+            - name: KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR
+                value: "3"
+            - name: KAFKA_JMX_PORT
+                value: "5555"
+            image: confluentinc/cp-kafka:4.1.2-2
+            imagePullPolicy: IfNotPresent
+            livenessProbe:
+            exec:
+                command:
+                - sh
+                - -ec
+                - /usr/bin/jps | /bin/grep -q SupportedKafka
+            failureThreshold: 3
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            name: kafka-broker
+            ports:
+            - containerPort: 9092
+                name: kafka
+                protocol: TCP
+            readinessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            successThreshold: 1
+            tcpSocket:
+                port: kafka
+            timeoutSeconds: 5
+            resources: {}
+            terminationMessagePath: /dev/termination-log
+            terminationMessagePolicy: File
+            volumeMounts:
+            - mountPath: /opt/kafka/data
+                name: datadir-claim
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 60
+    updateStrategy:
+    type: OnDelete
+    volumeClaimTemplates:
+    - metadata:
+        name: datadir-claim
+        spec:
+        #storageClassName: "standard"
+        # storageClassName: rook-block
+        accessModes:
+            - ReadWriteOnce
+        resources:
+            requests:
+            storage: 1Gi</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Apply the configuration:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>kubectl create -f ./kafka-statefulset.yml</pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="kafka-test-pod">8.4. Kafka Test Pod</h3>
+<div class="paragraph">
+<p>Add a test Pod to help explore and debug your new Kafka cluster. The Confluent Docker image
+confluentinc/cp-kafka:4.1.2-2 used for the test Pod is the same as our nodes from the StatefulSet and
+contain useful command in the /usr/bin/ folder.</p>
+</div>
+<div class="paragraph">
+<p>Create the file <code>kafka-test.yml</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="yaml" class="language-yaml hljs">apiVersion: v1
+kind: Pod
+metadata:
+    name: kafka-test-client
+    namespace: logisland
+spec:
+    containers:
+    - command:
+        - sh
+        - -c
+        - exec tail -f /dev/null
+        image: confluentinc/cp-kafka:4.1.2-2
+        imagePullPolicy: IfNotPresent
+        name: kafka
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Apply the configuration:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>kubectl create -f ./kafka-test.yml</pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="working-with-kafka">8.5. Working with Kafka</h3>
+<div class="paragraph">
+<p>If you have deployed the kafka-test-client pod from the configuration above, the following commands should get you started with some basic operations:</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Create Topic</dt>
+<dd>
+<p>kubectl -n logisland exec kafka-test-client&#8201;&#8212;&#8201;\
+/usr/bin/kafka-topics --zookeeper kafka-zookeeper:2181 \
+--topic logisland_raw --create --partitions 3 --replication-factor 1</p>
+</dd>
+<dt class="hdlist1">List Topics</dt>
+<dd>
+<p>kubectl -n logisland exec kafka-test-client&#8201;&#8212;&#8201;/usr/bin/kafka-topics --zookeeper kafka-zookeeper:2181 --list</p>
+</dd>
+<dt class="hdlist1">Sending logs to Kafka</dt>
+<dd>
+<p>This script generates a boatload of fake apache logs very quickly.
+Its useful for generating fake workloads for data ingest and/or analytics applications.
+It can write log lines to console, to log files or directly to gzip files. Or to kafka &#8230;&#8203;
+It utilizes the excellent Faker library to generate realistic ip&#8217;s, URI&#8217;s etc.</p>
+</dd>
+</dl>
+</div>
+<div class="paragraph">
+<p>Create the file <code>loggen-deployment.yml</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="yaml" class="language-yaml hljs">apiVersion: v1
+kind: Pod
+metadata:
+    name: loggen-job
+    namespace: logisland
+spec:
+    containers:
+    - name: loggen
+        image: hurence/loggen
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: LOGGEN_SLEEP
+            valueFrom:
+            configMapKeyRef:
+                name: special-config
+                key: loggen.sleep
+        - name: LOGGEN_NUM
+            valueFrom:
+            configMapKeyRef:
+                name: special-config
+                key: loggen.num
+        - name: LOGGEN_KAFKA
+            valueFrom:
+            configMapKeyRef:
+                name: logisland-config
+                key: kafka.brokers
+        - name: LOGGEN_KAFKA_TOPIC
+            valueFrom:
+            configMapKeyRef:
+                name: special-config
+                key: loggen.topic</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Apply the configuration:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>kubectl create -f ./loggen-deployment.yml</pre>
+</div>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Listen on a Topic</dt>
+<dd>
+<p>make sure some fake apache logs are flowing through kafka topic</p>
+<div class="literalblock">
+<div class="content">
+<pre>kubectl -n logisland exec -ti kafka-test-client -- \
+/usr/bin/kafka-console-consumer --bootstrap-server kafka:9092 \
+--topic logisland_raw --from-beginning</pre>
+</div>
+</div>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="logisland-setup">9. Logisland Setup</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>It&#8217;s now time time to dive into log mining. We&#8217;ll setup a 3 instances logisland stream that will handle apache logs parsing (coming from loggen script) as a ReplicaSet</p>
+</div>
+<div class="paragraph">
+<p>Create the file <code>logisland-deployment.yml</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="yaml" class="language-yaml hljs">apiVersion: apps/v1beta2
+kind: ReplicaSet
+metadata:
+    name: logisland-job
+    namespace: logisland
+spec:
+    replicas: 3
+    selector:
+    matchLabels:
+        app: logisland-job
+    template:
+    metadata:
+        labels:
+        app: logisland-job
+    spec:
+        containers:
+        - name: logisland
+            image: hurence/logisland-job
+            imagePullPolicy: IfNotPresent
+            command: ["/opt/logisland/bin/logisland.sh"]
+            args: ["--standalone", "--conf", "/opt/logisland/conf/index-apache-logs-plainjava.yml"]
+            env:
+            - name: ES_CLUSTER_NAME
+                valueFrom:
+                configMapKeyRef:
+                    name: logisland-config
+                    key: es.cluster.name
+            - name: KAFKA_BROKERS
+                valueFrom:
+                configMapKeyRef:
+                    name: logisland-config
+                    key: kafka.brokers
+            - name: ES_HOSTS
+                valueFrom:
+                configMapKeyRef:
+                    name: logisland-config
+                    key: es.hosts</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Apply the configuration:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>kubectl create -f ./logisland-deployment.yml</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>run the following command to see events parsed by logisland flowing through the output topic</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>kubectl -n logisland exec -ti kafka-test-client --     /usr/bin/kafka-console-consumer --bootstrap-server kafka:9092     --topic logisland_events</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>check that logs are correctly stored into elasticsearch</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>kubectl -n logisland exec -ti kafka-test-client --     curl http://elasticsearch:9200/logisland.*/_search?pretty=1</pre>
+</div>
+</div>
+</div>
+</div>
+  </div>
+</div>
+
+  </div>
+
+  <div class="content project-footer">
+  <div class="footer-section">
+    <div class="logo-wrapper">
+      <a href="/docs/"><img src="/docs/assets/images/logisland-logo.png" class="project-logo" title="Logisland"></a>
+    </div>
+  </div>
+  <div class="grid-wrapper">
+    <p class="grid__item width-3-12">Logisland is open. Logisland and its extensions are available under the <a href='https://www.apache.org/licenses/LICENSE-2.0' target='_blank'>Apache Software License 2.0</a> or compatible license.<br /><br />This website was built with <a href='https://jekyllrb.com/' target='_blank'>Jekyll</a> is hosted on <a href='https://pages.github.com/' target='_blank'>Github Pages</a> and is completely open source. If you want to make it better, <a href='https://github.com/hurence/logisland.io' target='_blank'>fork the website</a> and show us what you’ve got.</p>
+
+    
+      <div class="width-1-12 project-links">
+        <span>Navigation</span>
+        <ul class="footer-links width-1-12">
+          
+            <li><a href="/docs">Home</a></li>
+          
+            <li><a href="/docs/guides">Guides</a></li>
+          
+            <li><a href="/docs/get-started">Get Started</a></li>
+          
+        </ul>
+      </div>
+    
+      <div class="width-1-12 project-links">
+        <span>Contribute</span>
+        <ul class="footer-links width-1-12">
+          
+            <li><a href="https://twitter.com/LogislandC">Follow us</a></li>
+          
+            <li><a href="https://github.com/hurence/logisland">GitHub</a></li>
+          
+        </ul>
+      </div>
+    
+      <div class="width-1-12 project-links">
+        <span>Get Help</span>
+        <ul class="footer-links width-1-12">
+          
+            <li><a href="https://gitter.im/logisland/logisland">Chatroom</a></li>
+          
+            <li><a href="https://groups.google.com/forum/#!forum/logisland-dev">Google&nbsp;Groups</a></li>
+          
+            <li><a href="/docs/faq">FAQ</a></li>
+          
+        </ul>
+      </div>
+    
+
+    
+      <div class="width-6-12 more-links">
+        <span>Logisland is proudly made of</span>
+        <ul class="footer-links">
+          
+            <li><a href="https://kafka.apache.org" target="_blank">Kafka</a></li>
+          
+            <li><a href="https://spark.apache.org" target="_blank">Spark</a></li>
+          
+        </ul>
+      </div>
+    
+  </div>
+</div>
+  <div class="content redhat-footer">
+  <div class="grid-wrapper">
+    <span class="licence">
+      <i class="fab fa-creative-commons"></i><i class="fab fa-creative-commons-by"></i> <a href="https://creativecommons.org/licenses/by/3.0/" target="_blank">CC by 3.0</a>
+    </span>
+    <span class="redhat">
+      an Hurence sponsored project   
+    </span>
+    <span class="redhat-logo">
+      <a href="https://www.hurence.com/" target="_blank"><img src="/docs/assets/images/logo-hurence.png"></a>
+    </span>
+  </div>
+</div>
+
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+  <script type="text/javascript" src="/docs/assets/javascript/mobile-nav.js"></script>
+  <script type="text/javascript" src="/docs/assets/javascript/scroll-down.js"></script>
+  <script type="text/javascript">
+    if (("undefined" !== typeof _satellite) && ("function" === typeof _satellite.pageBottom)) {
+        _satellite.pageBottom();
+    }
+  </script>
+  
+</body>
+
+</html>
