@@ -141,56 +141,16 @@ However, you can go right to the completed example.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="setting-up-kafka">4. Setting up Kafka</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>Apache Kafka is pitched as a Distributed Streaming Platform. In Kafka lingo, Producers continuously generate data (streams) and Consumers are responsible for processing, storing and analysing it. Kafka Brokers are responsible for ensuring that in a distributed scenario the data can reach from Producers to Consumers without any inconsistency. A set of Kafka brokers and another piece of software called zookeeper constitute a typical Kafka deployment.</p>
-</div>
-<div class="paragraph">
-<p>Let’s start with a single broker instance. Create a directory called logisland-getting-started and inside it create your docker-compose.yml with the following content:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="yml" class="language-yml hljs">version: '3'
-services:
-  zookeeper:
-    image: wurstmeister/zookeeper
-    ports:
-      - "2181:2181"
-
-  kafka:
-    image: wurstmeister/kafka:0.10.2.1
-    ports:
-      - "9092:9092"
-    environment:
-      KAFKA_ADVERTISED_HOST_NAME: localhost
-      KAFKA_CREATE_TOPICS: "test:1:1"
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-
-  logisland:
-    image: hurence/logisland:latest
-    volumes:
-      - ./conf:/opt/logisland/conf</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Start Zookeeper, Kafka and a zombie Logisland container with the following command <code>docker-compose up -d</code></p>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="boostraping-logisland">5. Boostraping Logisland</h2>
+<h2 id="boostraping-logisland">4. Boostraping Logisland</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Our app is pretty straightforward, it reads some raw apache log lines from a kafka topic, parse these lines as Logisland Records and send these records to another Kafka topic.</p>
 </div>
 <div class="sect2">
-<h3 id="configure-the-streaming-app">5.1. Configure the streaming app</h3>
+<h3 id="configure-the-streaming-app">4.1. Configure the streaming app</h3>
 <div class="paragraph">
-<p>The easiest way to create a new Logisland project is to open a text editor and to edit a config file.
-Paste the following content into a <code>conf/getting-started.yml</code>.</p>
+<p>The easiest way to create a new Logisland project is to open a text editor in the <code>getting-started</code> folder and to edit a config file.
+Browse the following content of <code>conf/parse-apache-logs.yml</code> in any text editor if you want to make some adjustments.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -201,9 +161,9 @@ engine:
   component: com.hurence.logisland.engine.spark.KafkaStreamProcessingEngine
   configuration:
     spark.app.name: GettingStarted
-    spark.master: local[2]
-    spark.driver.memory: 1G
-    spark.streaming.batchDuration: 1000
+    spark.master: local[4]
+    spark.driver.memory: 2G
+    spark.streaming.batchDuration: 200
     spark.streaming.kafka.maxRatePerPartition: 3000
     spark.streaming.timeout: -1
     spark.ui.port: 4050
@@ -221,14 +181,13 @@ engine:
         kafka.metadata.broker.list: kafka:9092
         kafka.zookeeper.quorum: zookeeper:2181
         kafka.topic.autoCreate: true
-        kafka.topic.default.partitions: 2
+        kafka.topic.default.partitions: 4
         kafka.topic.default.replicationFactor: 1
       processorConfigurations:
 
+        # a parser that produce events from an apache log REGEX
         - processor: apache_parser
           component: com.hurence.logisland.processor.SplitText
-          type: parser
-          documentation: a parser that produce events from an apache log REGEX
           configuration:
             record.type: apache_log
             value.regex: (\S+)\s+(\S+)\s+(\S+)\s+\[([\w:\/]+\s[+\-]\d{4})\]\s+"(\S+)\s+(\S+)\s*(\S*)"\s+(\S+)\s+(\S+)
@@ -247,13 +206,81 @@ Here the stream will read all the logs sent in <code>logisland_raw</code> topic 
 <p>We can define some serializers to marshall all records from and to a topic.</p>
 </div>
 </div>
-<div class="sect2">
-<h3 id="launch-the-application">5.2. Launch the application</h3>
+</div>
+</div>
+<div class="sect1">
+<h2 id="setting-up-underlyning-services">5. Setting up Underlyning services</h2>
+<div class="sectionbody">
 <div class="paragraph">
-<p>you can now run the job inside the logisland container</p>
+<p>Apache Kafka is pitched as a Distributed Streaming Platform. In Kafka lingo, Producers continuously generate data (streams) and Consumers are responsible for processing, storing and analysing it. Kafka Brokers are responsible for ensuring that in a distributed scenario the data can reach from Producers to Consumers without any inconsistency. A set of Kafka brokers and another piece of software called zookeeper constitute a typical Kafka deployment.</p>
 </div>
 <div class="paragraph">
-<p><code>sudo docker exec -ti logisland-getting-started_logisland_1 ./bin/logisland.sh --conf conf/getting-started.yml</code></p>
+<p>Let’s start with a single broker instance. In the directory directory <code>getting-started</code> create your docker-compose.yml with the following content:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="yml" class="language-yml hljs">version: '3'
+services:
+  zookeeper:
+    image: wurstmeister/zookeeper
+    ports:
+      - "2181:2181"
+
+  kafka:
+    image: wurstmeister/kafka:0.10.2.1
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_ADVERTISED_HOST_NAME: kafka
+      KAFKA_CREATE_TOPICS: "test:1:1"
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./data:/tmp/data
+
+  logisland:
+    image: hurence/logisland:latest
+    ports:
+      - '4050:4050'
+    volumes:
+      - ./conf:/opt/logisland/conf
+    environment:
+      KAFKA_HOME: /opt/kafka_2.11-0.10.2.2
+      KAFKA_BROKERS: kafka:9092
+      ZK_QUORUM: zookeeper:2181
+      REDIS_CONNECTION: redis:6379
+
+  redis:
+    hostname: redis
+    image: 'redis:latest'
+    ports:
+      - '6379:6379'
+    networks:
+      - logisland
+
+volumes:
+  kafka-home:
+
+networks:
+  logisland:</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Start Zookeeper, Kafka, Loggen &amp; Logisland container with the following command <code>docker-compose up -d</code></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="launch-logisland-application">6. Launch Logisland Application</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Now you can now run the job inside the logisland container</p>
+</div>
+<div class="paragraph">
+<p><code>sudo docker exec -ti getting-started_logisland_1 ./bin/logisland.sh --conf conf/parse-apache-logs.yml</code></p>
+</div>
+<div class="paragraph">
+<p>This will launch a Logisland Stream application waiting for data in a Kafka topic that will be automatically created.</p>
 </div>
 <div class="paragraph">
 <p>The last logs should be something like :</p>
@@ -282,61 +309,55 @@ log4j:ERROR No output stream or file set for the appender named [rolling].
 </div>
 </div>
 </div>
-</div>
 <div class="sect1">
-<h2 id="log-mining">6. Log mining</h2>
+<h2 id="log-mining">7. Log mining</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Now that the plumbing is up and running we&#8217;ll just send some logs into kafka and see what happens.</p>
+<p>Now that the plumbing is up and running we&#8217;ll just see what happens.</p>
 </div>
 <div class="sect2">
-<h3 id="inject-some-apache-logs-into-kafka">6.1. Inject some Apache logs into Kafka</h3>
+<h3 id="inject-some-apache-logs-into-kafka">7.1. Inject some Apache logs into Kafka</h3>
 <div class="paragraph">
-<p>Now we&#8217;re going to send some logs to <code>logisland_raw</code> Kafka topic to simulate a log collection system.</p>
+<p>Logs are beeing sent to <code>logisland_raw</code> Kafka topic to simulate a log collection system. Nothing to do here as it is already done for you by the loggen container which generates random apache logs.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>You could send the first 4000 lines of NASA http access over July 1995 to LogIsland with kafka scripts (available in our logisland container) to `logisland_raw` Kafka topic with the following command :
+`sudo docker exec -ti getting-started_kafka_1 sh -c "cat /tmp/data/access.log | /opt/kafka/bin/kafka-console-producer.sh --broker-list kafka:9092 --topic logisland_raw"`</pre>
+</div>
 </div>
 <div class="paragraph">
-<p>If you don&#8217;t have your own httpd logs available, you can use some freely available log files from
-NASA-HTTP <a href="http://ita.ee.lbl.gov/html/contrib/NASA-HTTP.html" class="bare">http://ita.ee.lbl.gov/html/contrib/NASA-HTTP.html</a> web site access:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>Jul 01 to Jul 31, ASCII format, 20.7 MB gzip compressed <a href="ftp://ita.ee.lbl.gov/traces/NASA_access_log_Jul95.gz" class="bare">ftp://ita.ee.lbl.gov/traces/NASA_access_log_Jul95.gz</a></p>
-</li>
-<li>
-<p>Aug 04 to Aug 31, ASCII format, 21.8 MB gzip compressed <a href="ftp://ita.ee.lbl.gov/traces/NASA_access_logAug95.gz" class="bare">ftp://ita.ee.lbl.gov/traces/NASA_access_logAug95.gz</a></p>
-</li>
-</ul>
+<p>If you want to see what is flowing into <code>logisland_raw</code> topic, just run the following :</p>
 </div>
 <div class="paragraph">
-<p>Let&#8217;s send the first 500 lines of NASA http access over July 1995 to LogIsland with kafka scripts
- (available in our logisland container) to <code>logisland_raw</code> Kafka topic.
-In another terminal run those commands</p>
+<p><code>sudo docker exec -ti getting-started_kafka_1 /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server kafka:9092 --topic logisland_raw</code></p>
+</div>
+<div class="paragraph">
+<p>It should something like</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="sh" class="language-sh hljs">sudo docker exec -ti logisland-getting-started_kafka_1 bash
-cd /tmp
-wget ftp://ita.ee.lbl.gov/traces/NASA_access_log_Jul95.gz
-gunzip NASA_access_log_Jul95.gz
-head -n 500 NASA_access_log_Jul95 | ${KAFKA_HOME}/bin/kafka-console-producer.sh --broker-list kafka:9092 --topic logisland_raw</code></pre>
+<pre class="highlightjs highlight"><code data-lang="shell" class="language-shell hljs">68.25.236.19 - - [19/Jun/2019:15:05:36 +0200] "GET /app/main/posts HTTP/1.0" 200 4989 "http://hunter-clark.org/main/faq.php" "Mozilla/5.0 ...
+64.252.158.21 - - [19/Jun/2019:15:05:36 +0200] "POST /search/tag/list HTTP/1.0" 200 5029 "http://lambert.com/" "Mozilla/5.0 ...
+77.185.192.58 - - [19/Jun/2019:15:05:36 +0200] "GET /wp-content HTTP/1.0" 200 4976 "http://simmons.com/" "Mozilla/5.0 ...
+157.242.110.206 - - [19/Jun/2019:15:05:36 +0200] "DELETE /wp-content HTTP/1.0" 200 4913 "http://gonzalez-collins.com/post/" "Mozilla/5.0 ...</code></pre>
 </div>
 </div>
 </div>
 <div class="sect2">
-<h3 id="see-what-we-have-in-return">6.2. See what we have in return</h3>
+<h3 id="see-what-we-have-in-return">7.2. See what we have in return</h3>
 <div class="paragraph">
-<p>Logisland will handle the parsing of the log lines and structure them as Records. Those will be sent in another Kafka topic.</p>
+<p>Logisland handles the parsing of the log lines and structure them as Records before sending them to <code>logisland_events</code>. Those will be sent in another Kafka topic.</p>
 </div>
 <div class="paragraph">
-<p><code>sudo docker exec -ti logisland-getting-started_kafka_1 /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server kafka:9092 --topic logisland_events --from-beginning</code></p>
+<p><code>sudo docker exec -ti getting-started_kafka_1 /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server kafka:9092 --topic logisland_events</code></p>
 </div>
 <div class="paragraph">
 <p>You should see the apache log events such as :</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>{
+<pre class="highlightjs highlight"><code data-lang="shell" class="language-shell hljs">{
   "id" : "e80c7088-6676-4b56-9aaf-30cfbe1a4367",
   "type" : "apache_log",
   "creationDate" : 804571706000,
@@ -354,14 +375,31 @@ head -n 500 NASA_access_log_Jul95 | ${KAFKA_HOME}/bin/kafka-console-producer.sh 
     "user" : "-",
     "record_type" : "apache_log"
   }
-}</pre>
+}</code></pre>
 </div>
 </div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="whats-next">7. What&#8217;s next?</h2>
+<h2 id="whats-going-on-behing-the-scene">8. What&#8217;s going on behing the scene</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You should open the following url <a href="http://localhost:4050/streaming/" class="bare">http://localhost:4050/streaming/</a> in your browser to get some metrics from spark streaming throughput.</p>
+</div>
+<div class="paragraph">
+<p><span class="image"><img src="/docs/guides/images/logisland-getting-started.png" alt="Spark Streaming"></span></p>
+</div>
+<div class="paragraph">
+<p>The main metric here is the lag or scheduling delay, which one you want to be as low as possible (near zero) or at least no increasing constantly otherwise this would be a sign that you need to make your app scale, it can be by increasing the partitionning of Kafka topics and the number of cores that process simultaneously your data. This is a huge topic.</p>
+</div>
+<div class="paragraph">
+<p>Another metric is processing time, which give us here about 35ms for</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="whats-next">9. What&#8217;s next?</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>This guide covered the creation of an application using Logisland.

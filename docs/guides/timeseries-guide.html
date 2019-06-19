@@ -2,7 +2,7 @@
 <html>
 
 <head>
-  <title>Logisland - Guides</title>
+  <title>Timeseries Guide</title>
   <script src="/docs/assets/javascript/highlightjs-pack.js" type="text/javascript"></script>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -22,7 +22,7 @@
   <script src="//cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
 </head>
 
-<body class="guides-index">
+<body class="guides">
   <!-- Google Tag Manager (noscript) -->
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-T9XHGDR"
   height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -61,170 +61,100 @@
   </div>
 </div>
 
-    <div class="grid-wrapper guides">
-  <div class="grid__item width-12-12">
-    <h1 class="text-caps">Logisland - Guides</h1>
-  </div>
-  <div class="grid__item width-4-12 hide-mobile toc">
-  <h2 id="table-of-contents">Table of Contents</h2>
-
-  <h3 id="event-processing">Event Processing</h3>
-
-  <ul>
-    <li><a href="/docs/guides/event-aggregation-guide">Event Aggregation</a></li>
-    <li><a href="/docs/guides/query-matching-guide">Query Matching</a></li>
-    <li><a href="/docs/guides/el-guide">Using Expression language</a></li>
-    <li><a href="/docs/guides/enrichment-guide">Using Cache &amp; Enrichers</a></li>
-    <li><a href="/docs/guides/threshold-alerting-guide">Threshold Alerting</a></li>
-    <li><a href="/docs/guides/dynamic-properties-guide">Dynamic properties</a></li>
-  </ul>
-
-  <h3 id="data-stores">Data Stores</h3>
-
-  <ul>
-    <li><a href="/docs/guides/datastore-connectors-guide">Using Connectors</a></li>
-    <li><a href="/docs/guides/datastore-elasticsearch-guide">Using Elasticsearch</a></li>
-    <li><a href="/docs/guides/datastore-solr-guide">Using SolR</a></li>
-    <li><a href="/docs/guides/datastore-redis-guide">Using Redis</a></li>
-    <li><a href="/docs/guides/datastore-mongo-guide">Using MongoDB</a></li>
-  </ul>
-
-  <h3 id="operation">Operation</h3>
-
-  <ul>
-    <li><a href="/docs/guides/kubernetes1-guide">Kubernetes Deployment</a></li>
-    <li><a href="/docs/guides/application-monitoring-guide">Application Monitoring</a></li>
-    <li><a href="/docs/guides/kafka-operations-guide">Kafka Operations</a></li>
-    <li><a href="/docs/guides/kafka-best-practices-guide">Kafka Best Practices</a></li>
-  </ul>
-
-  <h3 id="extensions">Extensions</h3>
-
-  <ul>
-    <li><a href="/docs/guides/logisland-components-guide">Using Components</a></li>
-    <li><a href="/docs/guides/logisland-api-guide">Logisland Java API</a></li>
-    <li><a href="/docs/guides/logisland-rest-api-guide">Logisland REST API</a></li>
-  </ul>
-
-  <h3 id="time-series">Time Series</h3>
-
-  <ul>
-    <li><a href="/docs/guides/timeseries-guide">Time Series analytics</a></li>
-  </ul>
-
-  <h3 id="web-analytics">Web analytics</h3>
-
-  <ul>
-    <li><a href="/docs/guides/web-sessionization-guide">User sessions</a></li>
-  </ul>
-
+    <div class="guides">
+  <div class="width-12-12">
+    <h1 class="text-caps">Timeseries Guide</h1>
+    <div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Learn how to send Logisland <code>Records</code> into SolR through de the Datastore API</p>
 </div>
-<div class="grid__item width-8-12 width-12-12-m guides-content">
-<div>
-    <p>You have gone through the <a href="/docs/get-started">Getting Started</a> guides.
-You are now ready to dive into specific topic guides.</p>
-  </div>
-
-<div class="guide-item">
-    <h2 id="event-aggregation">Event Aggregation</h2>
-    <p>Learn how to aggregate metrics over time window events</p>
-
-    <p>This guide covers:</p>
-
-    <ul>
-      <li>avro schema validation</li>
-      <li>event aggregation stream</li>
-    </ul>
-
-    <p><a href="/docs/guides/event-aggregation-guide" class="button-cta secondary">READ THE GUIDE</a></p>
-  </div>
-<div class="guide-item">
-    <h2 id="query-matching">Query Matching</h2>
-    <p>Learn how to percolate lucen Queries to generate custom events based on business policies</p>
-
-    <p>This guide covers:</p>
-
-    <ul>
-      <li>lucene syntax</li>
-      <li>matching queries</li>
-    </ul>
-
-    <p><a href="/docs/guides/query-matching-guide" class="button-cta secondary">READ THE GUIDE</a></p>
-  </div>
-<div class="guide-item">
-    <h2 id="using-expression-language">Using Expression language</h2>
-    <p>Learn how to use Expression Language in Logisland configurations</p>
-
-    <p>This guide covers:</p>
-
-    <ul>
-      <li>MVEL syntax</li>
-      <li>using EL in a Processor</li>
-    </ul>
-
-    <p><a href="/docs/guides/el-guide" class="button-cta secondary">READ THE GUIDE</a></p>
-  </div>
-
-<div class="guide-item">
-    <h2 id="using-cache--enrichers">Using Cache &amp; Enrichers</h2>
-    <p>Learn how to add meta information from external source and using a cache</p>
-
-    <p>This guide covers:</p>
-
-    <ul>
-      <li>LRU cache definition</li>
-      <li>User Agent parsing</li>
-      <li>FQDN meta data retrieval</li>
-    </ul>
-
-    <p><a href="/docs/guides/enrichment-guide" class="button-cta secondary">READ THE GUIDE</a></p>
-  </div>
-
-<div class="guide-item">
-    <h2 id="threshold-alerting">Threshold Alerting</h2>
-    <p>Learn how to launch alerts based on thresholds policies</p>
-
-    <p>This guide covers:</p>
-
-    <ul>
-      <li>using a Redis K/V to store some aggregations</li>
-      <li>define alerting business rules as MVEL functions</li>
-    </ul>
-
-    <p><a href="/docs/guides/threshold-alerting-guide" class="button-cta secondary">READ THE GUIDE</a></p>
-  </div>
-
-<div class="guide-item">
-    <h2 id="dynamic-properties">Dynamic properties</h2>
-    <p>Learn how to use Dynamic Properties in configurations</p>
-
-    <p><a href="/docs/guides/dynamic-properties-guide" class="button-cta secondary">READ THE GUIDE</a></p>
-  </div>
-
+<div class="paragraph">
+<p>This guide covers:</p>
 </div>
-
-<div class="grid__item width-12-12"><hr /></div>
-<div class="grid__item width-4-12 width-12-12-m toc">
-  <h2 id="web-analytics-1">Web analytics</h2>
+<div class="ulist">
+<ul>
+<li>
+<p>datastore API</p>
+</li>
+<li>
+<p>SolR setup</p>
+</li>
+</ul>
 </div>
-<div class="grid__item width-8-12 width-12-12-m guides-content">
-<div class="guide-item">
-    <h2 id="user-sessions">User sessions</h2>
-
-    <p>Using Logisland with Google analytics gives your data back.</p>
-
-    <p><a href="/docs/guides/rest-json-guide" class="button-cta secondary">READ THE GUIDE</a></p>
+</div>
+</div>
+<div class="sect1">
+<h2 id="prerequisites">1. Prerequisites</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To complete this guide, you need:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>less than 15 minutes</p>
+</li>
+<li>
+<p>an IDE</p>
+</li>
+<li>
+<p>JDK 1.8+ installed with <code>JAVA_HOME</code> configured appropriately</p>
+</li>
+<li>
+<p>Apache Maven 3.5.3+</p>
+</li>
+<li>
+<p>The completed greeter application from the <a href="getting-started-guide">Getting Started Guide</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="solution">2. Solution</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>We recommend that you follow the instructions in the next sections and create the application step by step.
+However, you can go right to the completed example.</p>
+</div>
+<div class="paragraph">
+<p>Clone the Git repository: <code>git clone <a href="https://github.com/hurence/logisland-quickstarts.git" class="bare">https://github.com/hurence/logisland-quickstarts.git</a></code>, or download an <a href="https://github.com/hurence/logisland-quickstarts/archive/master.zip">archive</a>.</p>
+</div>
+<div class="paragraph">
+<p>The solution is located in the <code>datastore-solr</code> directory.</p>
+</div>
+<div class="paragraph">
+<p>This guide assumes you already have the completed application from the <code>getting-started</code> directory.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>add DDC threshold param to record converter</p>
+</li>
+<li>
+<p>add processor test</p>
+</li>
+<li>
+<p>cleanup structured stream serializer</p>
+</li>
+<li>
+<p>groupby.keys: tagname and group.by.field: tagname to rename</p>
+</li>
+<li>
+<p>spark.sqlContext.setConf("spark.sql.shuffle.partitions", "4") hardcoded</p>
+</li>
+<li>
+<p>add watemarking</p>
+</li>
+<li>
+<p>test spark.streaming.timeout in StructuredTest</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
   </div>
-</div>
-
-<div class="grid__item width-12-12"><hr /></div>
-<div class="grid__item width-4-12 width-12-12-m toc">
-  <h2 id="smart-alerting">Smart Alerting</h2>
-</div>
-<div class="grid__item width-8-12 width-12-12-m guides-content">
-</div>
-
-
 </div>
 
   </div>

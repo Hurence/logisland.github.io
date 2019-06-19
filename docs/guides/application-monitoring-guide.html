@@ -103,7 +103,25 @@ This guide covers:</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="concepts-architecture">2. Concepts &amp; architecture</h2>
+<h2 id="solution">2. Solution</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>We recommend that you follow the instructions in the next sections and create the application step by step.
+However, you can go right to the completed example.</p>
+</div>
+<div class="paragraph">
+<p>Clone the Git repository: <code>git clone <a href="https://github.com/hurence/logisland-quickstarts.git" class="bare">https://github.com/hurence/logisland-quickstarts.git</a></code>, or download an <a href="https://github.com/hurence/logisland-quickstarts/archive/master.zip">archive</a>.</p>
+</div>
+<div class="paragraph">
+<p>The solution is located in the <code>application-monitoring</code> directory.</p>
+</div>
+<div class="paragraph">
+<p>This guide assumes you already have the completed application from the <code>getting-started</code> directory.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="concepts-architecture">3. Concepts &amp; architecture</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>LogIsland monitoring is based on the couple prometheus/grafana. Prometheus is used to store all metrics coming from all monitored services by polling those services at a regular interval.</p>
@@ -112,7 +130,7 @@ This guide covers:</p>
 <p>The setup is split into 2 parts, one is for metrics instrumentation (system, kafka, zookeeper, hbase) on each node of the cluster and the other is for the configuration of the docker monitoring components.</p>
 </div>
 <div class="sect2">
-<h3 id="metrics-in-prometheus">2.1. Metrics in prometheus</h3>
+<h3 id="metrics-in-prometheus">3.1. Metrics in prometheus</h3>
 <div class="paragraph">
 <p><a href="https://prometheus.io/" class="bare">https://prometheus.io/</a></p>
 </div>
@@ -137,7 +155,7 @@ This guide covers:</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="dashboarding-with-grafana">2.2. Dashboarding with Grafana</h3>
+<h3 id="dashboarding-with-grafana">3.2. Dashboarding with Grafana</h3>
 <div class="paragraph">
 <p><a href="https://grafana.com/grafana" class="bare">https://grafana.com/grafana</a></p>
 </div>
@@ -158,13 +176,13 @@ This guide covers:</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="step-1-cluster-setup">3. Step 1 : Cluster setup</h2>
+<h2 id="step-1-cluster-setup">4. Step 1 : Cluster setup</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>The following commands should be launched on each node of your cluster handling LogIsland infrastructure services.</p>
 </div>
 <div class="sect2">
-<h3 id="system-metrics">3.1. System metrics</h3>
+<h3 id="system-metrics">4.1. System metrics</h3>
 <div class="paragraph">
 <p><a href="https://github.com/prometheus/node_exporter" class="bare">https://github.com/prometheus/node_exporter</a></p>
 </div>
@@ -175,7 +193,7 @@ This guide covers:</p>
 <p>Node exporter can be either installed manually or launched as a Docker container :</p>
 </div>
 <div class="sect3">
-<h4 id="manual-mode">3.1.1. Manual mode :</h4>
+<h4 id="manual-mode">4.1.1. Manual mode :</h4>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="shell" class="language-shell hljs"># download the latest build of Node Exporter
@@ -214,7 +232,7 @@ end script</code></pre>
 </div>
 </div>
 <div class="sect3">
-<h4 id="docker-mode">3.1.2. Docker mode :</h4>
+<h4 id="docker-mode">4.1.2. Docker mode :</h4>
 <div class="paragraph">
 <p>Node exporter can also be launched as a docker container :</p>
 </div>
@@ -225,19 +243,19 @@ end script</code></pre>
 </div>
 </div>
 <div class="sect3">
-<h4 id="display-the-metrics">3.1.3. Display the metrics :</h4>
+<h4 id="display-the-metrics">4.1.3. Display the metrics :</h4>
 <div class="paragraph">
 <p>After Node Exporter starts, use a browser to view its web interface available at `http://your_server_ip:9100/metrics &lt;<a href="http://your_server_ip:9100/metrics&gt;`_" class="bare">http://your_server_ip:9100/metrics&gt;`_</a> You should see a page with some metrics.</p>
 </div>
 </div>
 </div>
 <div class="sect2">
-<h3 id="zookeeper-metrics">3.2. Zookeeper metrics</h3>
+<h3 id="zookeeper-metrics">4.2. Zookeeper metrics</h3>
 <div class="paragraph">
 <p>We will use the jmx_prometheus_javaagent tool to publish zookeeper metrics on a given port ($ZK_JMX_PORT here). Prometheus will then scrap the metrics here.</p>
 </div>
 <div class="sect3">
-<h4 id="install-files">3.2.1. Install files</h4>
+<h4 id="install-files">4.2.1. Install files</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -251,7 +269,7 @@ wget <a href="https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_ja
 </div>
 </div>
 <div class="sect3">
-<h4 id="set-appropriate-flags">3.2.2. Set appropriate flags</h4>
+<h4 id="set-appropriate-flags">4.2.2. Set appropriate flags</h4>
 <div class="paragraph">
 <p>Zookeeper must be launched with the following flags</p>
 </div>
@@ -285,7 +303,7 @@ wget <a href="https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_ja
 </div>
 </div>
 <div class="sect3">
-<h4 id="restart-services-and-check-metrics">3.2.3. Restart services and check metrics</h4>
+<h4 id="restart-services-and-check-metrics">4.2.3. Restart services and check metrics</h4>
 <div class="paragraph">
 <p>Restart zookeeper services.
 The metrics should be available for each node and reached via &lt;node_host_name_or_IP&gt;:$ZK_JMX_PORT/metrics</p>
@@ -293,12 +311,12 @@ The metrics should be available for each node and reached via &lt;node_host_name
 </div>
 </div>
 <div class="sect2">
-<h3 id="kafka-metrics">3.3. Kafka metrics</h3>
+<h3 id="kafka-metrics">4.3. Kafka metrics</h3>
 <div class="paragraph">
 <p>We will use the jmx_prometheus_javaagent tool to publish kafka metrics on a given port ($KAFKA_JMX_PORT here). Prometheus will then scrap the metrics here.</p>
 </div>
 <div class="sect3">
-<h4 id="install-files-2">3.3.1. Install files</h4>
+<h4 id="install-files-2">4.3.1. Install files</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -312,7 +330,7 @@ wget <a href="https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_ja
 </div>
 </div>
 <div class="sect3">
-<h4 id="set-appropriate-flags-2">3.3.2. Set appropriate flags</h4>
+<h4 id="set-appropriate-flags-2">4.3.2. Set appropriate flags</h4>
 <div class="paragraph">
 <p>In Ambari, enrich the KAFKA_OPTS environment variable in "kafka-env template" section as below :</p>
 </div>
@@ -323,7 +341,7 @@ wget <a href="https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_ja
 </div>
 </div>
 <div class="sect3">
-<h4 id="restart-services-and-check-metrics-2">3.3.3. Restart services and check metrics</h4>
+<h4 id="restart-services-and-check-metrics-2">4.3.3. Restart services and check metrics</h4>
 <div class="paragraph">
 <p>Restart kafka services.
 The metrics should be available for each node and reached via &lt;node_host_name_or_IP&gt;:$KAFKA_JMX_PORT/metrics</p>
@@ -331,7 +349,7 @@ The metrics should be available for each node and reached via &lt;node_host_name
 </div>
 </div>
 <div class="sect2">
-<h3 id="spark-metrics">3.4. Spark metrics</h3>
+<h3 id="spark-metrics">4.4. Spark metrics</h3>
 <div class="paragraph">
 <p>Spark has a configurable metrics system based on the Dropwizard Metrics Library. This allows users to report Spark metrics to a variety of sinks including HTTP, JMX, and CSV files. The metrics system is configured via a configuration file that Spark expects to be present at $SPARK_HOME/conf/metrics.properties.
 A custom file location can be specified via the spark.metrics.conf configuration property. By default, the root namespace used for driver or executor metrics is the value of spark.app.id. However, often times, users want to be able to track the metrics across apps for driver and executors, which is hard to do with application ID (i.e. spark.app.id) since it changes with every invocation of the app. For such use cases, a custom namespace can be specified for metrics reporting using spark.metrics.namespace configuration property.
@@ -366,7 +384,7 @@ If, say, users wanted to set the metrics namespace to the name of the applicatio
 </ul>
 </div>
 <div class="sect3">
-<h4 id="enable-spark-metrics-report-to-jmx">3.4.1. ENABLE SPARK METRICS REPORT TO JMX</h4>
+<h4 id="enable-spark-metrics-report-to-jmx">4.4.1. ENABLE SPARK METRICS REPORT TO JMX</h4>
 <div class="paragraph">
 <p>Spark has a configurable metrics system. By default, it doesn’t expose its metrics, but only through the web UI, as mentioned above. To enable exposing metrics as JMX MBeans, you should edit <code>$SPARK_HOME/conf/metrics.properties</code> file.</p>
 </div>
@@ -397,7 +415,7 @@ executor.source.jvm.class=org.apache.spark.metrics.source.JvmSource</code></pre>
 </div>
 </div>
 <div class="sect1">
-<h2 id="step-2-monitoring-console-setup">4. Step 2: Monitoring console setup</h2>
+<h2 id="step-2-monitoring-console-setup">5. Step 2: Monitoring console setup</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>The second part deals with the monitoring tools in the docker compose. Theses software shall be installed in an autonomous VM or linux host, able to access the cluster nodes like a edge node.</p>
@@ -406,7 +424,7 @@ executor.source.jvm.class=org.apache.spark.metrics.source.JvmSource</code></pre>
 <p>All the binaries can be found in th <code>$LOGISLAND_HOME/monitoring</code> folder. So get the latest release, extract it on your edge node and `install Docker &amp; docker-compose &lt;<a href="https://docs.docker.com/compose/install/&gt;`_" class="bare">https://docs.docker.com/compose/install/&gt;`_</a> on the edge node (the one that will run the docker compose monitoring stack : prometheus/grafana) as well.</p>
 </div>
 <div class="sect2">
-<h3 id="services-ports-list">4.1. Services ports list</h3>
+<h3 id="services-ports-list">5.1. Services ports list</h3>
 <div class="paragraph">
 <p>Here is a list of arbitrary ports for prometheus data scrapping.
 there are many web services by host so that can a good idea to carefully note every port number for each of them and to keep the same ports on each host.</p>
@@ -441,7 +459,7 @@ there are many web services by host so that can a good idea to carefully note ev
 </div>
 </div>
 <div class="sect2">
-<h3 id="elasticsearch-exporter">4.2. Elasticsearch exporter</h3>
+<h3 id="elasticsearch-exporter">5.2. Elasticsearch exporter</h3>
 <div class="paragraph">
 <p><a href="https://github.com/justwatchcom/elasticsearch_exporter" class="bare">https://github.com/justwatchcom/elasticsearch_exporter</a></p>
 </div>
@@ -453,7 +471,7 @@ there are many web services by host so that can a good idea to carefully note ev
 </div>
 </div>
 <div class="sect2">
-<h3 id="burrow">4.3. Burrow</h3>
+<h3 id="burrow">5.3. Burrow</h3>
 <div class="paragraph">
 <p>Burrow is a monitoring companion for Apache Kafka that provides consumer lag checking as a service without the need for specifying thresholds. It monitors committed offsets for all consumers and calculates the status of those consumers on demand. An HTTP endpoint is provided to request status on demand, as well as provide other Kafka cluster information. There are also configurable notifiers that can send status out via email or HTTP calls to another service.</p>
 </div>
@@ -465,7 +483,7 @@ there are many web services by host so that can a good idea to carefully note ev
 </div>
 </div>
 <div class="sect2">
-<h3 id="configure-prometheus">4.4. Configure Prometheus</h3>
+<h3 id="configure-prometheus">5.4. Configure Prometheus</h3>
 <div class="paragraph">
 <p>edit <code>$LOGISLAND_HOME/monitoring/prometheus/conf/prometheus.yml</code> with the following (according to the previous port number list)</p>
 </div>
@@ -506,9 +524,9 @@ scrape_configs:
 </div>
 </div>
 <div class="sect2">
-<h3 id="launch-docker-console">4.5. Launch Docker console</h3>
+<h3 id="launch-docker-console">5.5. Launch Docker console</h3>
 <div class="sect3">
-<h4 id="start-docker-compose">4.5.1. Start Docker-compose</h4>
+<h4 id="start-docker-compose">5.5.1. Start Docker-compose</h4>
 <div class="paragraph">
 <p>Launch all the tools tools (prometheus, burrow, es-exporter, grafana) are packaged into a docker composite bundle.</p>
 </div>
@@ -520,16 +538,16 @@ docker-compose up -d</pre>
 </div>
 </div>
 <div class="sect3">
-<h4 id="display-the-metrics-in-prometheus">4.5.2. Display the metrics in Prometheus</h4>
+<h4 id="display-the-metrics-in-prometheus">5.5.2. Display the metrics in Prometheus</h4>
 <div class="paragraph">
 <p>Once all the containers have started, use a browser to view metrics displayed in Prometheus web interface `http://prometheus_host:9090/graph &lt;<a href="http://prometheus_host:9090/graph&gt;`_" class="bare">http://prometheus_host:9090/graph&gt;`_</a> .</p>
 </div>
 </div>
 </div>
 <div class="sect2">
-<h3 id="grafana">4.6. Grafana</h3>
+<h3 id="grafana">5.6. Grafana</h3>
 <div class="sect3">
-<h4 id="run-grafana-as-a-docker-container">4.6.1. Run Grafana as a Docker container</h4>
+<h4 id="run-grafana-as-a-docker-container">5.6.1. Run Grafana as a Docker container</h4>
 <div class="paragraph">
 <p>Grafana can be run as a Docker container (admin password needs to be chosen):</p>
 </div>
@@ -540,7 +558,7 @@ docker-compose up -d</pre>
 </div>
 </div>
 <div class="sect3">
-<h4 id="add-prometheus-datasource">4.6.2. Add Prometheus Datasource</h4>
+<h4 id="add-prometheus-datasource">5.6.2. Add Prometheus Datasource</h4>
 <div class="paragraph">
 <p>Go to the Grafana `login page &lt;<a href="http://grafana_host:3000/?orgId=1&gt;`_" class="bare">http://grafana_host:3000/?orgId=1&gt;`_</a> to login with <strong>admin/admin_password</strong> (feel free to change that).</p>
 </div>
@@ -559,10 +577,10 @@ docker-compose up -d</pre>
 </div>
 </div>
 <div class="sect1">
-<h2 id="metrics-and-alerts">5. Metrics and alerts</h2>
+<h2 id="metrics-and-alerts">6. Metrics and alerts</h2>
 <div class="sectionbody">
 <div class="sect2">
-<h3 id="elasticsearch-alerts">5.1. Elasticsearch alerts</h3>
+<h3 id="elasticsearch-alerts">6.1. Elasticsearch alerts</h3>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="shell" class="language-shell hljs"># calculate filesytem used and free percent

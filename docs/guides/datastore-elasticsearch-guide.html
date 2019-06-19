@@ -112,7 +112,25 @@
 </div>
 </div>
 <div class="sect1">
-<h2 id="setup-the-environment">2. Setup the environment</h2>
+<h2 id="solution">2. Solution</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>We recommend that you follow the instructions in the next sections and create the application step by step.
+However, you can go right to the completed example.</p>
+</div>
+<div class="paragraph">
+<p>Clone the Git repository: <code>git clone <a href="https://github.com/hurence/logisland-quickstarts.git" class="bare">https://github.com/hurence/logisland-quickstarts.git</a></code>, or download an <a href="https://github.com/hurence/logisland-quickstarts/archive/master.zip">archive</a>.</p>
+</div>
+<div class="paragraph">
+<p>The solution is located in the <code>datastore-elasticsearch</code> directory.</p>
+</div>
+<div class="paragraph">
+<p>This guide assumes you already have the completed application from the <code>getting-started</code> directory.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="setup-the-environment">3. Setup the environment</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>For this guide we need a Logisland stack (Zookeeper, Kafka, Logisland) and an Elasticsearch/Kibana combo as a complete Docker compose config.</p>
@@ -250,7 +268,7 @@ db80cdf23b45        hurence/zookeeper                                     "/bin/
 </div>
 </div>
 <div class="sect1">
-<h2 id="logisland-job-setup">3. Logisland job setup</h2>
+<h2 id="logisland-job-setup">4. Logisland job setup</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Now that we have a fully functionnal infrastructure, we can go to the stream processing job definition.</p>
@@ -340,10 +358,10 @@ Here the stream will read all the logs sent in <code>logisland_raw</code> topic 
 </div>
 </div>
 <div class="sect1">
-<h2 id="inspect-the-logs">4. Inspect the logs</h2>
+<h2 id="inspect-the-logs">5. Inspect the logs</h2>
 <div class="sectionbody">
 <div class="sect2">
-<h3 id="kibana">4.1. Kibana</h3>
+<h3 id="kibana">5.1. Kibana</h3>
 <div class="paragraph">
 <p>With ElasticSearch, you can use Kibana. We included one in our docker-compose file.</p>
 </div>
@@ -379,7 +397,7 @@ insights about the processing bandwidth of your streams.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="stop-the-job">5. Stop the job</h2>
+<h2 id="stop-the-job">6. Stop the job</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>You can Ctr+c the console where you launched logisland job.

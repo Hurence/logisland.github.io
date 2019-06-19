@@ -19,11 +19,20 @@ include::./attributes.adoc[]
 
 
 
+In this guide we will present you how to integrate kafka connect connectors into logisland.
+
+== Solution
+
+We recommend that you follow the instructions in the next sections and create the application step by step.
+However, you can go right to the completed example.
+
+Clone the Git repository: `git clone {quickstarts-clone-url}`, or download an {quickstarts-archive-url}[archive].
+
+The solution is located in the `datastore-connectors` directory.
+
+This guide assumes you already have the completed application from the `getting-started` directory.
 
 
-== Connectors
-
-In this guids we will present you how to integrate kafka connect connectors into logisland.
 
 === Introduction
 
@@ -43,7 +52,7 @@ In order to use a kafka connect source or sink you have to package and install t
 
 Hopefully it can be easily done by using the *components.sh* tool.
 
-  bin/components.sh -i <plugin_artifact>
+    bin/components.sh -i <plugin_artifact>
 
 
 The plugin artifact should be provided according this format: *groupId:artifactId:version* where groupId, artifactId and version refer to the maven artifact you're going to install.
