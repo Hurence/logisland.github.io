@@ -134,10 +134,10 @@ However, you can go right to the completed example.</p>
 <p>Clone the Git repository: <code>git clone <a href="https://github.com/hurence/logisland-quickstarts.git" class="bare">https://github.com/hurence/logisland-quickstarts.git</a></code>, or download an <a href="https://github.com/hurence/logisland-quickstarts/archive/master.zip">archive</a>.</p>
 </div>
 <div class="paragraph">
-<p>The solution is located in the <code>event-processing</code> directory.</p>
+<p>The solution is located in the <code>conf/core/event-aggregation.yml</code> file.</p>
 </div>
 <div class="paragraph">
-<p>This guide assumes you already have the completed application from the <code>getting-started</code> directory.</p>
+<p>This guide assumes you already have the completed application from the <code>getting-started</code> guide.</p>
 </div>
 </div>
 </div>
@@ -274,7 +274,7 @@ The result of the query will be pushed into to <code>logisland_aggregations</cod
 Connect a shell to your logisland container to launch the following streaming jobs.</p>
 </div>
 <div class="paragraph">
-<p><code>sudo docker exec -i -t logisland bin/logisland.sh --conf conf/event-aggregation.yml</code></p>
+<p><code>sudo docker exec -i -t logisland-quickstarts_logisland_1 bin/logisland.sh --conf conf/core/event-aggregation.yml</code></p>
 </div>
 </div>
 </div>
@@ -286,8 +286,8 @@ Connect a shell to your logisland container to launch the following streaming jo
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>sudo docker exec -ti logisland-getting-started_kafka_1 /opt/kafka/bin/kafka-console-consumer.sh  \\
-    --bootstrap-server kafka:9092 --topic logisland_agregations --from-beginning</pre>
+<pre>sudo docker exec -ti logisland-quickstarts_kafka_1 /opt/kafka/bin/kafka-console-consumer.sh  \\
+    --bootstrap-server kafka:9092 --topic logisland_agregations</pre>
 </div>
 </div>
 <div class="paragraph">

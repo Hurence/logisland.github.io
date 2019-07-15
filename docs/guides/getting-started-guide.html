@@ -136,7 +136,7 @@ However, you can go right to the completed example.</p>
 <p>Clone the Git repository: <code>git clone <a href="https://github.com/hurence/logisland-quickstarts.git" class="bare">https://github.com/hurence/logisland-quickstarts.git</a></code>, or download an <a href="https://github.com/hurence/logisland-quickstarts/archive/master.zip">archive</a>.</p>
 </div>
 <div class="paragraph">
-<p>The solution is located in the <code>getting-started</code> directory.</p>
+<p>The solution is located in the <code>conf/core/parse-apache-logs.yml</code> file.</p>
 </div>
 </div>
 </div>
@@ -149,8 +149,8 @@ However, you can go right to the completed example.</p>
 <div class="sect2">
 <h3 id="configure-the-streaming-app">4.1. Configure the streaming app</h3>
 <div class="paragraph">
-<p>The easiest way to create a new Logisland project is to open a text editor in the <code>getting-started</code> folder and to edit a config file.
-Browse the following content of <code>conf/parse-apache-logs.yml</code> in any text editor if you want to make some adjustments.</p>
+<p>The easiest way to create a new Logisland project is to open a text editor in the <code>conf/core</code> folder and to edit a config file.
+Edit the following content of <code>conf/core/parse-apache-logs.yml</code> in any text editor if you want to make some adjustments.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -215,7 +215,7 @@ Here the stream will read all the logs sent in <code>logisland_raw</code> topic 
 <p>Apache Kafka is pitched as a Distributed Streaming Platform. In Kafka lingo, Producers continuously generate data (streams) and Consumers are responsible for processing, storing and analysing it. Kafka Brokers are responsible for ensuring that in a distributed scenario the data can reach from Producers to Consumers without any inconsistency. A set of Kafka brokers and another piece of software called zookeeper constitute a typical Kafka deployment.</p>
 </div>
 <div class="paragraph">
-<p>Let’s start with a single broker instance. In the directory directory <code>getting-started</code> create your docker-compose.yml with the following content:</p>
+<p>Let’s start with a single broker instance. In the <code>core</code> directory create your <code>docker-compose.yml</code> with the following content:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -225,6 +225,8 @@ services:
     image: wurstmeister/zookeeper
     ports:
       - "2181:2181"
+    networks:
+      - logisland
 
   kafka:
     image: wurstmeister/kafka:0.10.2.1
@@ -237,9 +239,15 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./data:/tmp/data
+    networks:
+      - logisland
 
   logisland:
     image: hurence/logisland:latest
+    entrypoint:
+      - "tail"
+      - "-f"
+      - "bin/logisland.sh"
     ports:
       - '4050:4050'
     volumes:
@@ -249,6 +257,16 @@ services:
       KAFKA_BROKERS: kafka:9092
       ZK_QUORUM: zookeeper:2181
       REDIS_CONNECTION: redis:6379
+    networks:
+      - logisland
+
+  loggen:
+    image: hurence/loggen:latest
+    networks:
+      - logisland
+    environment:
+      LOGGEN_NUM: 500
+      KAFKA_BROKERS: kafka:9092
 
   redis:
     hostname: redis
@@ -277,7 +295,7 @@ networks:
 <p>Now you can now run the job inside the logisland container</p>
 </div>
 <div class="paragraph">
-<p><code>sudo docker exec -ti getting-started_logisland_1 ./bin/logisland.sh --conf conf/parse-apache-logs.yml</code></p>
+<p><code>sudo docker exec -ti logisland-quickstarts_logisland_1 ./bin/logisland.sh --conf conf/core/parse-apache-logs.yml</code></p>
 </div>
 <div class="paragraph">
 <p>This will launch a Logisland Stream application waiting for data in a Kafka topic that will be automatically created.</p>
@@ -323,14 +341,14 @@ log4j:ERROR No output stream or file set for the appender named [rolling].
 <div class="literalblock">
 <div class="content">
 <pre>You could send the first 4000 lines of NASA http access over July 1995 to LogIsland with kafka scripts (available in our logisland container) to `logisland_raw` Kafka topic with the following command :
-`sudo docker exec -ti getting-started_kafka_1 sh -c "cat /tmp/data/access.log | /opt/kafka/bin/kafka-console-producer.sh --broker-list kafka:9092 --topic logisland_raw"`</pre>
+`sudo docker exec -ti logisland-quickstarts_kafka_1 sh -c "cat /tmp/data/access.log | /opt/kafka/bin/kafka-console-producer.sh --broker-list kafka:9092 --topic logisland_raw"`</pre>
 </div>
 </div>
 <div class="paragraph">
 <p>If you want to see what is flowing into <code>logisland_raw</code> topic, just run the following :</p>
 </div>
 <div class="paragraph">
-<p><code>sudo docker exec -ti getting-started_kafka_1 /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server kafka:9092 --topic logisland_raw</code></p>
+<p><code>sudo docker exec -ti logisland-quickstarts_kafka_1 /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server kafka:9092 --topic logisland_raw</code></p>
 </div>
 <div class="paragraph">
 <p>It should something like</p>
@@ -350,7 +368,7 @@ log4j:ERROR No output stream or file set for the appender named [rolling].
 <p>Logisland handles the parsing of the log lines and structure them as Records before sending them to <code>logisland_events</code>. Those will be sent in another Kafka topic.</p>
 </div>
 <div class="paragraph">
-<p><code>sudo docker exec -ti getting-started_kafka_1 /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server kafka:9092 --topic logisland_events</code></p>
+<p><code>sudo docker exec -ti logisland-quickstarts_kafka_1 /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server kafka:9092 --topic logisland_events</code></p>
 </div>
 <div class="paragraph">
 <p>You should see the apache log events such as :</p>
@@ -399,7 +417,15 @@ log4j:ERROR No output stream or file set for the appender named [rolling].
 </div>
 </div>
 <div class="sect1">
-<h2 id="whats-next">9. What&#8217;s next?</h2>
+<h2 id="stop-the-solution">9. Stop the solution</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Stop Zookeeper, Kafka, Loggen &amp; Logisland container with the following command <code>docker-compose down</code></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="whats-next">10. What&#8217;s next?</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>This guide covered the creation of an application using Logisland.

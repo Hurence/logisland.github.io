@@ -19,12 +19,12 @@ include::./attributes.adoc[]
 
 
 
-Learn how to send {project-name} `Records` into SolR through de the Datastore API
+Learn how to manage timeseries analytics with {project-name} `Records`.
 
 This guide covers:
 
-* datastore API
-* SolR setup
+* timeseries API
+* anomaly detection
 
 == Prerequisites
 
@@ -33,22 +33,204 @@ To complete this guide, you need:
 * less than 15 minutes
 * an IDE
 * JDK 1.8+ installed with `JAVA_HOME` configured appropriately
-* Apache Maven 3.5.3+
-* The completed greeter application from the link:getting-started-guide[Getting Started Guide]
+* to be familiar with logisland (please refer to other guides first otherwise)
 
 == Solution
 
-We recommend that you follow the instructions in the next sections and create the application step by step.
+We recommend that you follow the instructions in the next sections and create your own application step by step.
 However, you can go right to the completed example.
 
 Clone the Git repository: `git clone {quickstarts-clone-url}`, or download an {quickstarts-archive-url}[archive].
 
-The solution is located in the `datastore-solr` directory.
+The solution is located in the `conf/timeseries/parse-timeseries-structured.yml` file.
 
 This guide assumes you already have the completed application from the `getting-started` directory.
 
 
+== Environment setup
 
+Start Zookeeper, Kafka, Logisland container with the following command `docker-compose up -d`
+
+== Setup Logsialnd Job
+
+If you want to run directly the solution juste issu the following command within {quickstarts-clone-url} folder
+`sudo docker exec -ti logisland-quickstarts_logisland_1 ./bin/logisland.sh --conf conf/timeseries/parse-timeseries-structured.yml`
+
+otherwise open an editor 
+
+
+== the timeseries app
+
+[source,yml]
+----
+version: 1.1.2
+documentation: LogIsland future factory job
+
+engine:
+  component: com.hurence.logisland.engine.spark.KafkaStreamProcessingEngine
+  configuration:
+    spark.app.name: TimeseriesParsing
+    spark.master: local[2]
+    spark.streaming.batchDuration: 200
+    spark.streaming.kafka.maxRatePerPartition: 10000
+    spark.streaming.timeout: -1
+  
+  controllerServiceConfigurations:
+
+    - controllerService: file_service
+      component: com.hurence.logisland.stream.spark.structured.provider.LocalFileStructuredStreamProviderService
+      configuration:
+        local.input.path: /opt/logisland/data/timeseries
+
+    - controllerService: console_service
+      component: com.hurence.logisland.stream.spark.structured.provider.ConsoleStructuredStreamProviderService
+
+    - controllerService: kafka_service
+      component: com.hurence.logisland.stream.spark.structured.provider.KafkaStructuredStreamProviderService
+      configuration:
+        kafka.input.topics: logisland_measures
+        kafka.output.topics: logisland_measures
+        kafka.error.topics: logisland_errors
+        kafka.input.topics.serializer: com.hurence.logisland.serializer.JsonSerializer
+        kafka.output.topics.serializer: com.hurence.logisland.serializer.JsonSerializer
+        kafka.error.topics.serializer: com.hurence.logisland.serializer.JsonSerializer
+        kafka.metadata.broker.list: kafka:9092
+        kafka.zookeeper.quorum: zookeeper:2181
+        kafka.topic.autoCreate: true
+        kafka.topic.default.partitions: 4
+        kafka.topic.default.replicationFactor: 1
+
+  streamConfigurations:
+
+    # This stream take all raw events as lines comming from local files
+    # these lines are split into logisland records and sent into a kafka topic
+    - stream: parsing_stream
+      component: com.hurence.logisland.stream.spark.structured.StructuredStream
+      configuration:
+        read.topics.serializer: none
+        read.stream.service.provider: file_service
+        write.topics.serializer: com.hurence.logisland.serializer.JsonSerializer
+        write.stream.service.provider: kafka_service
+      processorConfigurations:
+
+        - processor: historian_parser
+          component: com.hurence.logisland.processor.SplitText
+          configuration:
+            record.type: historian_serie
+            value.regex: (\S+\s+\S+);(\S+);(\S+);(\S+)
+            value.fields: record_time,tagname,record_value,quality
+
+        - processor: create_aliases
+          component: com.hurence.logisland.processor.NormalizeFields
+          configuration:
+            conflict.resolution.policy: keep_both_fields
+            record_name: tagname
+
+        - processor: fields_types_converter
+          component: com.hurence.logisland.processor.ConvertFieldsType
+          configuration:
+            record_value: double
+            quality: float
+
+    # This stream will perform a statefull groupBy operation on tagname
+    - stream: compaction_stream
+      component: com.hurence.logisland.stream.spark.structured.StructuredStream
+      configuration:
+        read.topics.key.serializer: com.hurence.logisland.serializer.StringSerializer
+        read.topics.serializer: com.hurence.logisland.serializer.JsonSerializer
+        read.stream.service.provider: kafka_service
+        write.topics.serializer: com.hurence.logisland.serializer.JsonSerializer
+        write.stream.service.provider: console_service
+        groupby: tagname
+
+      processorConfigurations:
+
+        # Make one chronix chunk from all records
+        - processor: timeseries_converter
+          component: com.hurence.logisland.processor.ConvertToTimeseries
+          configuration:
+            groupby: tagname
+            metric: max;min;avg;count;trend;scale:0.5;sax:5,0.01,6
+----
+
+== some data to process
+
+The folder `data/timeseries` contins some files that will be parsed with the following pattern `timestamp;tagname;value;quality`
+
+[source,csv]
+----
+07/02/2019 15:43:01;068_PI01;61.5777410770347;100
+07/02/2019 15:43:01;068_PI02;35.2193234276959;100
+07/02/2019 15:43:01;068_SI01;1788.41399658776;100
+07/02/2019 15:43:01;068_TI01;29.8433602008229;100
+07/02/2019 15:43:01;1C08.P1_TC01;17.2173590138412;100
+07/02/2019 15:43:01;1C08.P1_TC02;17.1910309082389;100
+07/02/2019 15:43:01;1C11.TE03;20.1282638510868;100
+07/02/2019 15:43:02;1C11.TE03;80.8519077634337;100
+07/02/2019 15:43:03;1C11.TE03;21.5853514802455;100
+07/02/2019 15:43:04;1C11.TE03;21.3110893745982;100
+07/02/2019 15:43:05;1C11.TE03;22.2834145029094;100
+07/02/2019 15:43:06;1C11.TE03;22.3418653962952;100
+07/02/2019 15:43:07;1C11.TE03;22.3587993997439;100
+07/02/2019 15:43:08;1C11.TE03;184.15295340911;100
+07/02/2019 15:43:09;1C11.TE03;385.684004054356;100
+07/02/2019 15:43:10;1C11.TE03;398.042336907894;100
+07/02/2019 15:43:11;1C11.TE03;549.025282963574;100
+07/02/2019 15:43:12;1C11.TE03;558.109812532283;100
+----
+
+
+
+== Points
+Each points is first parsed as 
+
+[source,json,subs=attributes+]
+----
+{
+  "id" : "c08b0cd2-4fa8-4ffe-8d85-7e320962c983",
+  "type" : "historian_serie",
+  "creationDate" : 1549554191000,
+  "fields" : {
+    "record_id" : "c08b0cd2-4fa8-4ffe-8d85-7e320962c983",
+    "tagname" : "1C11.TE03",
+    "record_value" : 549.025282963574,
+    "record_name" : "1C11.TE03",
+    "record_time" : 1549554191000,
+    "record_type" : "historian_serie",
+    "quality" : 100.0
+  }
+}
+----
+
+
+== Timeseries chunks with analytics
+
+you should see somethins like this in your logisland logs
+
+[source,json,subs=attributes+]
+----
+Record{fields={record_id=Field{name='record_id', type=string, rawValue=f8c9d251-5ef4-482a-8aef-5f0ecc5d1c00}, record_key=Field{name='record_key', type=null, rawValue=null}, record_value=Field{name='record_value', type=string, rawValue={
+  "id" : "5231d650-4104-4b2d-b97b-2b1923de9bfa",
+  "type" : "historian_serie",
+  "creationDate" : 1563204738441,
+  "fields" : {
+    "record_value" : "[B@78f60cb6",
+    "max" : 894.20699829388,
+    "trend" : false,
+    "record_chunk_end" : 1549554181000,
+    "count" : 1.0,
+    "record_type" : "historian_serie",
+    "quality" : "100.0",
+    "record_id" : "5231d650-4104-4b2d-b97b-2b1923de9bfa",
+    "tagname" : "068_SI01",
+    "min" : 894.20699829388,
+    "avg" : 894.20699829388,
+    "record_chunk_start" : 1549554181000,
+    "record_name" : "068_SI01",
+    "record_time" : 1563204738441
+  }
+}}, record_time=Field{name='record_time', type=long, rawValue=1563204738442}, record_type=Field{name='record_type', type=string, rawValue=generic}}, time=Mon Jul 15 15:32:18 GMT 2019, type='generic', id='f8c9d251-5ef4-482a-8aef-5f0ecc5d1c00'}
+----
 
 
 
