@@ -49,8 +49,8 @@ We recommend that you follow the instructions in the next sections and create th
 However, you can go right to the completed example.
 
 * Clone the Git repository: `git clone {quickstarts-clone-url}`, or download an {quickstarts-archive-url}[archive].
-* The solution is located in the `event-processing` directory.
-* This guide assumes you already have the completed application from the `event-aggregation ` directory.
+* The solution is located in the `conf/core/match-queries.yml` file.
+* This guide assumes you already have the completed application from the `event-aggregation` guide.
 
 
 == Logisland job setup
@@ -59,7 +59,7 @@ The logisland job for this tutorial is already packaged in the tar.gz assembly a
 
 Our application will be composed of 4 streams :
 
-The first one converts apache logs to typed records (please note the use of ``ConvertFieldsType`` processor)
+The first one converts apache logs to typed records (please note the use of `ConvertFieldsType` processor)
 
 The second one is the sql stream is a special one one use a link:../extensions/kafkarecordstreamsqlaggregator.html[KafkaRecordStreamSQLAggregator].
 This stream defines input/output topics names as well as Serializers, avro schema.
@@ -85,7 +85,7 @@ LIMIT 20
 ----    
 
 
-which will consider ``logisland_events`` topic as SQL table and create 20 output Record with the fields avg_bytes_out, src_ip & record_time.
+which will consider `logisland_events` topic as SQL table and create 20 output Record with the fields avg_bytes_out, src_ip & record_time.
 the statement with record_time will ensure that the created Records will correspond to the effective input event time (not the actual time).
 
 
@@ -203,7 +203,7 @@ Solr's built-in field types are very convenient for performing range queries on 
 For this tutorial we will handle some apache logs with a splitText parser and send them to Elastiscearch
 Connect a shell to your logisland container to launch the following streaming jobs.
 
-    `docker exec -i -t logisland bin/logisland.sh --conf conf/query-matching.yml`
+    `docker exec -i -t logisland-quickstarts_logisland_1 bin/logisland.sh --conf conf/query-matching.yml`
 
 
 == Check your alerts with Kibana
