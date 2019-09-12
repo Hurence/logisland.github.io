@@ -122,7 +122,7 @@ However, you can go right to the completed example.</p>
 <p>Clone the Git repository: <code>git clone <a href="https://github.com/hurence/logisland-quickstarts.git" class="bare">https://github.com/hurence/logisland-quickstarts.git</a></code>, or download an <a href="https://github.com/hurence/logisland-quickstarts/archive/master.zip">archive</a>.</p>
 </div>
 <div class="paragraph">
-<p>The solution is located in the <code>conf/datastore</code> directory.</p>
+<p>The solution is located in the <code>conf/datastore/es-write.yml</code> directory.</p>
 </div>
 <div class="paragraph">
 <p>This guide assumes you already have the completed application from the <code>getting-started</code> directory.</p>
@@ -148,100 +148,11 @@ Please note that you should not launch silmutaneously several docker-compose bec
 </table>
 </div>
 <div class="paragraph">
-<p>Edit a file named <code>docker-compose-datastore-es.yml</code> with the following content :</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="dockerfile" class="language-dockerfile hljs">version: '3'
-services:
-
-  # Zookeeper for Kafka
-  zookeeper:
-    image: hurence/zookeeper
-    hostname: zookeeper
-    ports:
-      - '2181:2181'
-    networks:
-      - logisland
-
-  # A single Kafka broker
-  kafka:
-    image: hurence/kafka:0.10.2.2-scala-2.11
-    hostname: kafka
-    ports:
-      - '9092:9092'
-    volumes:
-      - kafka-home:/opt/kafka_2.11-0.10.2.2/
-    environment:
-      KAFKA_ADVERTISED_PORT: 9092
-      KAFKA_ADVERTISED_HOST_NAME: kafka
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_JMX_PORT: 7071
-    networks:
-      - logisland
-
-  # A waiting logisland container
-  logisland:
-    image: hurence/logisland:1.1.2
-    command: tail -f bin/logisland.sh
-    ports:
-      - '4050:4050'
-      - '8082:8082'
-      - '9999:9999'
-    volumes:
-      - kafka-home:/opt/kafka_2.11-0.10.2.2/
-    environment:
-      KAFKA_HOME: /opt/kafka_2.11-0.10.2.2
-      KAFKA_BROKERS: kafka:9092
-      ZK_QUORUM: zookeeper:2181
-      ES_HOSTS: elasticsearch:9200
-      ES_CLUSTER_NAME: es-logisland
-    networks:
-      - logisland
-
-  # ES container
-  # make sure to increase vm.max_map_count kernel setting like documented here :
-  # https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html
-  elasticsearch:
-    environment:
-      - ES_JAVA_OPT='-Xms1G -Xmx1G'
-      - cluster.name=es-logisland
-      - http.host=0.0.0.0
-      - transport.host=0.0.0.0
-      - xpack.security.enabled=false
-    hostname: elasticsearch
-    image: 'docker.elastic.co/elasticsearch/elasticsearch:6.6.2'
-    ports:
-      - '9200:9200'
-      - '9300:9300'
-    networks:
-      - logisland
-      - es
-
-  # Kibana for dataviz
-  kibana:
-    environment:
-      - ELASTICSEARCH_URL=http://elasticsearch:9200
-    image: 'docker.elastic.co/kibana/kibana:5.4.0'
-    ports:
-      - '5601:5601'
-    networks:
-      - es
-
-volumes:
-  kafka-home:
-
-networks:
-  logisland:
-  es:</code></pre>
-</div>
-</div>
-<div class="paragraph">
 <p>Launch your docker containers with this command :</p>
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>sudo docker-compose -f docker-compose-datastore-es.yml up -d</pre>
+<pre>sudo docker-compose -f docker-compose.yml -f docker-compose-datastore-es.yml up -d</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -314,12 +225,12 @@ db80cdf23b45        hurence/zookeeper                                     "/bin/
     spark.master: local[2]
   controllerServiceConfigurations:
 
-    - controllerService: elasticsearch_service
-        component: com.hurence.logisland.service.elasticsearch.Elasticsearch_5_4_0_ClientService
-        configuration:
-            hosts: ${ES_HOSTS}
-            cluster.name: ${ES_CLUSTER_NAME}
-            batch.size: 5000</code></pre>
+    - controllerService: datastore_service
+      component: com.hurence.logisland.service.elasticsearch.Elasticsearch_6_6_2_ClientService
+      configuration:
+        hosts: elasticsearch:9300
+        cluster.name: es-logisland
+        batch.size: 500</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -352,7 +263,7 @@ Here the stream will read all the logs sent in <code>logisland_raw</code> topic 
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>sudo docker exec -ti conf_logisland_1 ./bin/logisland.sh --conf ./conf/index-apache-logs-es.yml</pre>
+<pre>sudo docker exec -ti logisland-quickstarts_logisland_1 ./bin/logisland.sh --conf ./conf/datastore/es-write.yml</pre>
 </div>
 </div>
 </div>
@@ -405,7 +316,7 @@ Then to kill all containers used run :</p>
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>sudo docker-compose -f docker-compose-datastore-es.yml down</pre>
+<pre>sudo docker-compose down</pre>
 </div>
 </div>
 <div class="paragraph">
