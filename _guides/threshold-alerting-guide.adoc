@@ -40,50 +40,37 @@ To complete this guide, you need:
 In this guide, we expand on the initial log parsing stream that was created as part of the Getting Started Guide.
 We cover how to generate time window metrics on some http traffic (apache log records).
 
-
-image::logisland-stream-event-aggregation.png[Archi]
+@TODO make a good diagram
+//image::logisland-stream-event-aggregation.png[Archi]
 
 == Solution
 
-We recommend that you follow the instructions in the next sections and create the application step by step.
+We recommend that you follow the instructions in the next sections and create the application step by step. 
 However, you can go right to the completed example.
 
 Clone the Git repository: `git clone {quickstarts-clone-url}`, or download an {quickstarts-archive-url}[archive].
 
-The solution is located in the `event-processing` directory.
+The solution is located in the `conf/core/threshold-alerting.yml` file.
 
-This guide assumes you already have the completed application from the `getting-started` directory.
-
-
+This guide assumes you already have the completed application from the `getting-started` guide.
 
 
 == Threshold based alerting on Apache logs with Redis K/V store
 
 
-In a previous tutorial we saw how to use Redis K/V store as a cache storage. In this one we will practice the use of
-`ComputeTag`, `CheckThresholds` and `CheckAlerts` processor in conjunction with this Redis Cache.
+In this tutorial we'll how to use Redis K/V store as a cache storage and how to practice the use of `ComputeTag`, `CheckThresholds` and `CheckAlerts` processors in conjunction with this Redis Cache.
 
 The following job is made of 2 streaming parts :
 
 1. A main stream which parses Apache logs and store them to a Redis cache .
 2. A timer based stream which compute some new tags values based on cached records, check some thresholds cross and send alerts if needed.
 
-.. note::
-
-    Be sure to know of to launch a logisland Docker environment by reading the `prerequisites <./prerequisites.html>`_ section
-
-The full logisland job for this tutorial is already packaged in the tar.gz assembly and you can find it here :
-
-.. code-block:: sh
-
-    docker exec -i -t conf_logisland_1 vim conf/threshold-alerting.yml
-
 We will start by explaining each part of the config file.
 
-== Controller service part
+=== Controller service part
 
 
-The `controllerServiceConfigurations` part is here to define all services that be shared by processors within the whole job, here a Redis KV cache service that will be used later in the ``BulkPut`` processor.
+The `controllerServiceConfigurations` part is here to define all services that be shared by processors within the whole job, here a Redis KV cache service that will be used later in the `BulkPut` processor.
 
 [source,yaml]
 ----
@@ -110,7 +97,7 @@ The `controllerServiceConfigurations` part is here to define all services that b
         record.recordSerializer: com.hurence.logisland.serializer.JsonSerializer
 ----
 
-== First stream : parse logs and compute tags
+=== First stream : parse logs and compute tags
 
 Here the stream will read all the logs sent in `logisland_raw` topic and push the processing output into `logisland_events` topic as Json serialized records.
 
@@ -126,13 +113,13 @@ Here the stream will read all the logs sent in `logisland_raw` topic and push th
         kafka.input.topics.serializer: none
         kafka.output.topics.serializer: com.hurence.logisland.serializer.JsonSerializer
         kafka.error.topics.serializer: com.hurence.logisland.serializer.JsonSerializer
-        kafka.metadata.broker.list: sandbox:9092
-        kafka.zookeeper.quorum: sandbox:2181
+        kafka.metadata.broker.list: localhost:9092
+        kafka.zookeeper.quorum: localhost:2181
         kafka.topic.autoCreate: true
         kafka.topic.default.partitions: 4
         kafka.topic.default.replicationFactor: 1
 ----
-Within this stream a ``SplitText`` processor takes a log line as a String and computes a ``Record`` as a sequence of fields.
+Within this stream a `SplitText` processor takes a log line as a String and computes a `Record` as a sequence of fields.
 
 
 [source,yaml]
@@ -145,13 +132,13 @@ Within this stream a ``SplitText`` processor takes a log line as a String and co
 ----
 
 This stream will process log entries as soon as they will be queued into `logisland_raw` Kafka topics, each log will
-be parsed as an event which will be pushed back to Kafka in the ``logisland_events`` topic.
+be parsed as an event which will be pushed back to Kafka in the `logisland_events` topic.
 
 the next processing step is to  assign `bytes_out` field as `record_value`
 
 [source,yaml]
 ----
-# change field name 'bytes_out' to `record_value`
+# change field name `bytes_out` to `record_value`
 - processor: normalize_fields
     component: com.hurence.logisland.processor.NormalizeFields
     configuration:
@@ -217,7 +204,7 @@ Here a new record with an `record_id` set to `computed1` and as a `record_value`
         computed1: return cache("logisland.hurence.com").value * 10.2;
 ----
 
-The last processor will handle all the ``Records`` of this stream to index them into datastore previously defined (Redis)
+The last processor will handle all the `Records` of this stream to index them into datastore previously defined (Redis)
 
 [source,yaml]
 ----
@@ -231,10 +218,8 @@ The last processor will handle all the ``Records`` of this stream to index them 
 ----
 
 
-
-
-== Second stream : check threshold cross and alerting
-The second stream will read all the logs sent in ``logisland_events`` topic and push the processed outputs (threshold_cross & alerts records) into ``logisland_alerts`` topic as Json serialized records.
+=== Second stream : check threshold cross and alerting
+The second stream will read all the logs sent in `logisland_events` topic and push the processed outputs (threshold_cross & alerts records) into `logisland_alerts` topic as Json serialized records.
 
 We won't comment the stream definition as it is really straightforward.
 
@@ -283,7 +268,7 @@ The first processor of this stream pipeline makes use of `CheckThresholds` compo
             alert1: cache("threshold1").duration > 50.0
 ----
 
-The last processor will handle all the ``Records`` of this stream to index them into datastore previously defined (Redis)
+The last processor will handle all the `Records` of this stream to index them into datastore previously defined (Redis)
 
 [source,yaml]
 ----
@@ -298,8 +283,7 @@ The last processor will handle all the ``Records`` of this stream to index them 
 == Run the job
 Connect a shell to your logisland container to launch the following streaming jobs.
 
-    docker exec -i -t conf_logisland_1 bin/logisland.sh --conf conf/threshold-alerting.yml
-
+`docker exec -i -t logisland-quickstarts_logisland_1 vim conf/core/threshold-alerting.yml`
 
 
 == Inspect the logs and alerts

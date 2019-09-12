@@ -292,7 +292,7 @@ networks:
 <h2 id="launch-logisland-application">6. Launch Logisland Application</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Now you can now run the job inside the logisland container</p>
+<p>Now you can run the job inside the logisland container</p>
 </div>
 <div class="paragraph">
 <p><code>sudo docker exec -ti logisland-quickstarts_logisland_1 ./bin/logisland.sh --conf conf/core/parse-apache-logs.yml</code></p>
@@ -412,7 +412,7 @@ log4j:ERROR No output stream or file set for the appender named [rolling].
 <p>The main metric here is the lag or scheduling delay, which one you want to be as low as possible (near zero) or at least no increasing constantly otherwise this would be a sign that you need to make your app scale, it can be by increasing the partitionning of Kafka topics and the number of cores that process simultaneously your data. This is a huge topic.</p>
 </div>
 <div class="paragraph">
-<p>Another metric is processing time, which give us here about 35ms for</p>
+<p>Another metric is processing time, which gives us some insights about the processing capabilities of our setup. This where the logisland scalabity can be viewed (add more kafka topics and spark processors and you&#8217;ll see how you can handle a more intense workload)</p>
 </div>
 </div>
 </div>

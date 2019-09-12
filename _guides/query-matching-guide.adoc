@@ -5,7 +5,7 @@ https://github.com/hurence/logisland/tree/master/docs/src/main/asciidoc
 ////
 
 include::./attributes.adoc[]
-= {project-name} - Query Matching
+= {project-name} - Alerting with Query Matching
 
 :toc: macro
 :toclevels: 4
@@ -55,108 +55,35 @@ However, you can go right to the completed example.
 
 == Logisland job setup
 
-The logisland job for this tutorial is already packaged in the tar.gz assembly and you can find it here :
+Our application will add a new feature to the previous app (link:event-aggregation-guide[Event Aggregation Guide]) to match again some particuliar criterion. This is the heart of the complex event processing as you can define your own logic to build some new information over your data.
 
-Our application will be composed of 4 streams :
-
-The first one converts apache logs to typed records (please note the use of `ConvertFieldsType` processor)
-
-The second one is the sql stream is a special one one use a link:../extensions/kafkarecordstreamsqlaggregator.html[KafkaRecordStreamSQLAggregator].
-This stream defines input/output topics names as well as Serializers, avro schema.
-
-TIP: The http://avro.apache.org/docs/1.7.7/spec.html[Avro schema] is set for the input topic and must be same as the avro schema of the output topic for the stream that
-produces the records (please refer to link:getting-started-guide.html[Getting Started Guide])
-
-The most important part of the `KafkaRecordStreamSQLAggregator` is its `sql.query` property which defines
-a query to apply on the incoming records for the given time window.
-
-The following SQL query will be applied on sliding window of 10" of records.
-
-[source,sql,subs=attributes+]
-----
-SELECT count(*) AS connections_count, 
-       avg(bytes_out) AS avg_bytes_out, 
-       src_ip, 
-       first(record_time) as record_time
-FROM logisland_events
-GROUP BY src_ip
-ORDER BY connections_count DESC
-LIMIT 20
-----    
-
-
-which will consider `logisland_events` topic as SQL table and create 20 output Record with the fields avg_bytes_out, src_ip & record_time.
-the statement with record_time will ensure that the created Records will correspond to the effective input event time (not the actual time).
-
+1. First stream converts apache logs to typed records (please note the use of `ConvertFieldsType` processor)
+2. Second the sql stream we will compute every x seconds, the top twenty `src_ip` for connections count as new `top_client_metrics` Record containing `connections_count` and `avg_bytes_out` fields.
+3. Third stream creates alerts records within the `MatchQuery` processor which matches incomming records (from `logisland_aggregations`) against some criteria to eventualy produce some alerts to send them to `logisland_alerts`
 
 [source,yaml,subs=attributes+]
 ----
-- stream: metrics_by_host
-    component: com.hurence.logisland.stream.spark.KafkaRecordStreamSQLAggregator
-    type: stream
-    documentation: a processor that links
-    configuration:
-    kafka.input.topics: logisland_events
-    kafka.output.topics: logisland_aggregations
-    kafka.error.topics: logisland_errors
-    kafka.input.topics.serializer: com.hurence.logisland.serializer.KryoSerializer
-    kafka.output.topics.serializer: com.hurence.logisland.serializer.KryoSerializer
-    kafka.error.topics.serializer: com.hurence.logisland.serializer.JsonSerializer
-    kafka.metadata.broker.list: sandbox:9092
-    kafka.zookeeper.quorum: sandbox:2181
-    kafka.topic.autoCreate: true
-    kafka.topic.default.partitions: 2
-    kafka.topic.default.replicationFactor: 1
-    window.duration: 10
-    avro.input.schema: >
-        {  "version":1,
-            "type": "record",
-            "name": "com.hurence.logisland.record.apache_log",
-            "fields": [
-            { "name": "record_errors",   "type": [ {"type": "array", "items": "string"},"null"] },
-            { "name": "record_raw_key", "type": ["string","null"] },
-            { "name": "record_raw_value", "type": ["string","null"] },
-            { "name": "record_id",   "type": ["string"] },
-            { "name": "record_time", "type": ["long"] },
-            { "name": "record_type", "type": ["string"] },
-            { "name": "src_ip",      "type": ["string","null"] },
-            { "name": "http_method", "type": ["string","null"] },
-            { "name": "bytes_out",   "type": ["long","null"] },
-            { "name": "http_query",  "type": ["string","null"] },
-            { "name": "http_version","type": ["string","null"] },
-            { "name": "http_status", "type": ["string","null"] },
-            { "name": "identd",      "type": ["string","null"] },
-            { "name": "user",        "type": ["string","null"] }    ]}
-    sql.query: >
-        SELECT count(*) AS connections_count, avg(bytes_out) AS avg_bytes_out, src_ip
-        FROM logisland_events
-        GROUP BY src_ip
-        ORDER BY event_count DESC
-        LIMIT 20
-    max.results.count: 1000
-    output.record.type: top_client_metrics
+# match threshold queries
+- stream: aggregation_threshold_matching_stream
+  component: com.hurence.logisland.stream.spark.KafkaRecordStreamParallelProcessing
+  configuration:
+    kafka.input.topics: logisland_aggregations
+    kafka.output.topics: logisland_alerts
+    kafka.input.topics.serializer: com.hurence.logisland.serializer.JsonSerializer
+    kafka.output.topics.serializer: com.hurence.logisland.serializer.JsonSerializer
+    processorConfigurations:
+
+    # a parser that produce alerts from lucene queries
+    - processor: match_query
+      component: com.hurence.logisland.processor.MatchQuery
+      configuration:
+        numeric.fields: bytes_out,connections_count
+        too_much_bandwidth: avg_bytes_out:[25000 TO 5000000]
+        too_many_connections: connections_count:[150 TO 300]
+        output.record.type: threshold_alert
 ----
 
-Here we will compute every x seconds, the top twenty `src_ip` for connections count.
-The result of the query will be pushed into to `logisland_aggregations` topic as new `top_client_metrics` Record containing `connections_count` and `avg_bytes_out` fields.
-
-
-the third match some criteria to send some alerts
-
-[source,yaml,subs=attributes+]
-----
-- processor: match_query
-    component: com.hurence.logisland.processor.MatchQuery
-    type: processor
-    documentation: a parser that produce alerts from lucene queries
-    configuration:
-    numeric.fields: bytes_out,connections_count
-    too_much_bandwidth: avg_bytes_out:[25000 TO 5000000]
-    too_many_connections: connections_count:[150 TO 300]
-    output.record.type: threshold_alert
-----
-
-
+In this stream for example a new record of type `too_much_bandwidth` would be created if one record match the condition `avg_bytes_out:[25000 TO 5000000]`. Please read the the following paragraph on Lucene Query Syntax to learn more.
 
 
 == Lucene Query Syntax
@@ -203,19 +130,20 @@ Solr's built-in field types are very convenient for performing range queries on 
 For this tutorial we will handle some apache logs with a splitText parser and send them to Elastiscearch
 Connect a shell to your logisland container to launch the following streaming jobs.
 
-    `docker exec -i -t logisland-quickstarts_logisland_1 bin/logisland.sh --conf conf/query-matching.yml`
+`docker exec -i -t logisland-quickstarts_logisland_1 bin/logisland.sh --conf conf/core/match-queries.yml`
 
 
-== Check your alerts with Kibana
+== Check the alert outputs
+To see alert records flowing through kafka, run the following command :
 
-As we explore data logs from july 1995 we'll have to select an absolute time filter from 1995-06-30 to 1995-07-08 to see the events.
+    sudo docker exec -ti logisland-quickstarts_kafka_1 /opt/kafka/bin/kafka-console-consumer.sh  \\ 
+        --bootstrap-server kafka:9092 --topic logisland_alerts
 
-image::kibana-logisland-aggregates-events.png[alt=Kibana]
 
-you can filter your events with `record_type:connection_alert` to get 71733 connections alerts matching your query
+You should see the apache log events such as : 
 
-image::kibana-blacklisted-host.png[alt=Kibana]
 
-if we filter now on threshold alerts whith `record_type:threshold_alert` you'll get the 13 src_ip that have been catched by the threshold query.
-
-image::kibana-threshold-alerts.png[alt=Kibana]
+[source,json]
+----
+@TODO put here a sample alert output
+----

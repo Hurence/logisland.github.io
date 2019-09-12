@@ -145,11 +145,7 @@ However, you can go right to the completed example.</p>
 <h2 id="logisland-job-setup">4. Logisland job setup</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The logisland job for this tutorial is already packaged in the tar.gz assembly and you can find it here :</p>
-</div>
-<div class="paragraph">
-<p>Our application will add a new stream to the previous one : the sql stream is a special one one use a <a href="../extensions/kafkarecordstreamsqlaggregator.html">KafkaRecordStreamSQLAggregator</a>.
-This stream defines input/output topics names as well as Serializers, avro schema.</p>
+<p>Our application will add a new stream to the previous one (<a href="getting-started-guide">Getting Started Guide</a>) : the sql stream is a special one one use a <code>KafkaRecordStreamSQLAggregator</code>. This stream defines input/output topics names as well as Serializers, avro schema.</p>
 </div>
 <div class="admonitionblock tip">
 <table>
@@ -190,8 +186,7 @@ produces the records (please refer to <a href="getting-started-guide">Getting St
 </div>
 </div>
 <div class="paragraph">
-<p>The most important part of the <code>KafkaRecordStreamSQLAggregator</code> is its <code>sql.query</code> property which defines
-a query to apply on the incoming records for the given time window.</p>
+<p>The most important part of the <code>KafkaRecordStreamSQLAggregator</code> is its <code>sql.query</code> property which defines a query to apply on the incoming records for the given time window.</p>
 </div>
 <div class="paragraph">
 <p>The following SQL query will be applied on sliding window of 10" of records.</p>
@@ -209,8 +204,7 @@ LIMIT 20</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>which will consider <code>logisland_events</code> topic as SQL table and create 20 output Record with the fields avg_bytes_out, src_ip &amp; record_time.
-the statement with record_time will ensure that the created Records will correspond to the effective input event time (not the actual time).</p>
+<p>which will consider <code>logisland_events</code> topic as SQL table and create 20 output Record with the fields <code>avg_bytes_out</code>, <code>src_ip</code> &amp; <code>record_time</code>. The statement with <code>record_time</code> will ensure that the created records will correspond to the effective input event time (not the actual time).</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -287,7 +281,7 @@ Connect a shell to your logisland container to launch the following streaming jo
 <div class="literalblock">
 <div class="content">
 <pre>sudo docker exec -ti logisland-quickstarts_kafka_1 /opt/kafka/bin/kafka-console-consumer.sh  \\
-    --bootstrap-server kafka:9092 --topic logisland_agregations</pre>
+    --bootstrap-server kafka:9092 --topic logisland_aggregations</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -295,25 +289,7 @@ Connect a shell to your logisland container to launch the following streaming jo
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="json" class="language-json hljs">{
-  "id" : "e80c7088-6676-4b56-9aaf-30cfbe1a4367",
-  "type" : "apache_log",
-  "creationDate" : 804571706000,
-  "fields" : {
-    "src_ip" : "166.79.67.111",
-    "record_id" : "e80c7088-6676-4b56-9aaf-30cfbe1a4367",
-    "http_method" : "GET",
-    "record_value" : "166.79.67.111 - - [01/Jul/1995:00:08:26 -0400] \"GET /images/NASA-logosmall.gif HTTP/1.0\" 200 786",
-    "http_query" : "/images/NASA-logosmall.gif",
-    "bytes_out" : "786",
-    "identd" : "-",
-    "http_version" : "HTTP/1.0",
-    "http_status" : "200",
-    "record_time" : 804571706000,
-    "user" : "-",
-    "record_type" : "apache_log"
-  }
-}</code></pre>
+<pre class="highlightjs highlight"><code data-lang="json" class="language-json hljs">@TODO put here a sample aggregation output</code></pre>
 </div>
 </div>
 </div>

@@ -149,121 +149,45 @@ However, you can go right to the completed example.</p>
 <h2 id="logisland-job-setup">4. Logisland job setup</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The logisland job for this tutorial is already packaged in the tar.gz assembly and you can find it here :</p>
+<p>Our application will add a new feature to the previous app (<a href="event-aggregation-guide">Event Aggregation Guide</a>) to match again some particuliar criterion. This is the heart of the complex event processing as you can define your own logic to build some new information over your data.</p>
 </div>
-<div class="paragraph">
-<p>Our application will be composed of 4 streams :</p>
-</div>
-<div class="paragraph">
-<p>The first one converts apache logs to typed records (please note the use of <code>ConvertFieldsType</code> processor)</p>
-</div>
-<div class="paragraph">
-<p>The second one is the sql stream is a special one one use a <a href="../extensions/kafkarecordstreamsqlaggregator.html">KafkaRecordStreamSQLAggregator</a>.
-This stream defines input/output topics names as well as Serializers, avro schema.</p>
-</div>
-<div class="admonitionblock tip">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-tip" title="Tip"></i>
-</td>
-<td class="content">
-The <a href="http://avro.apache.org/docs/1.7.7/spec.html">Avro schema</a> is set for the input topic and must be same as the avro schema of the output topic for the stream that
-produces the records (please refer to <a href="getting-started-guide.html">Getting Started Guide</a>)
-</td>
-</tr>
-</table>
-</div>
-<div class="paragraph">
-<p>The most important part of the <code>KafkaRecordStreamSQLAggregator</code> is its <code>sql.query</code> property which defines
-a query to apply on the incoming records for the given time window.</p>
-</div>
-<div class="paragraph">
-<p>The following SQL query will be applied on sliding window of 10" of records.</p>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>First stream converts apache logs to typed records (please note the use of <code>ConvertFieldsType</code> processor)</p>
+</li>
+<li>
+<p>Second the sql stream we will compute every x seconds, the top twenty <code>src_ip</code> for connections count as new <code>top_client_metrics</code> Record containing <code>connections_count</code> and <code>avg_bytes_out</code> fields.</p>
+</li>
+<li>
+<p>Third stream creates alerts records within the <code>MatchQuery</code> processor which matches incomming records (from <code>logisland_aggregations</code>) against some criteria to eventualy produce some alerts to send them to <code>logisland_alerts</code></p>
+</li>
+</ol>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="sql" class="language-sql hljs">SELECT count(*) AS connections_count,
-       avg(bytes_out) AS avg_bytes_out,
-       src_ip,
-       first(record_time) as record_time
-FROM logisland_events
-GROUP BY src_ip
-ORDER BY connections_count DESC
-LIMIT 20</code></pre>
+<pre class="highlightjs highlight"><code data-lang="yaml" class="language-yaml hljs"># match threshold queries
+- stream: aggregation_threshold_matching_stream
+  component: com.hurence.logisland.stream.spark.KafkaRecordStreamParallelProcessing
+  configuration:
+    kafka.input.topics: logisland_aggregations
+    kafka.output.topics: logisland_alerts
+    kafka.input.topics.serializer: com.hurence.logisland.serializer.JsonSerializer
+    kafka.output.topics.serializer: com.hurence.logisland.serializer.JsonSerializer
+    processorConfigurations:
+
+    # a parser that produce alerts from lucene queries
+    - processor: match_query
+      component: com.hurence.logisland.processor.MatchQuery
+      configuration:
+        numeric.fields: bytes_out,connections_count
+        too_much_bandwidth: avg_bytes_out:[25000 TO 5000000]
+        too_many_connections: connections_count:[150 TO 300]
+        output.record.type: threshold_alert</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>which will consider <code>logisland_events</code> topic as SQL table and create 20 output Record with the fields avg_bytes_out, src_ip &amp; record_time.
-the statement with record_time will ensure that the created Records will correspond to the effective input event time (not the actual time).</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="yaml" class="language-yaml hljs">- stream: metrics_by_host
-    component: com.hurence.logisland.stream.spark.KafkaRecordStreamSQLAggregator
-    type: stream
-    documentation: a processor that links
-    configuration:
-    kafka.input.topics: logisland_events
-    kafka.output.topics: logisland_aggregations
-    kafka.error.topics: logisland_errors
-    kafka.input.topics.serializer: com.hurence.logisland.serializer.KryoSerializer
-    kafka.output.topics.serializer: com.hurence.logisland.serializer.KryoSerializer
-    kafka.error.topics.serializer: com.hurence.logisland.serializer.JsonSerializer
-    kafka.metadata.broker.list: sandbox:9092
-    kafka.zookeeper.quorum: sandbox:2181
-    kafka.topic.autoCreate: true
-    kafka.topic.default.partitions: 2
-    kafka.topic.default.replicationFactor: 1
-    window.duration: 10
-    avro.input.schema: &gt;
-        {  "version":1,
-            "type": "record",
-            "name": "com.hurence.logisland.record.apache_log",
-            "fields": [
-            { "name": "record_errors",   "type": [ {"type": "array", "items": "string"},"null"] },
-            { "name": "record_raw_key", "type": ["string","null"] },
-            { "name": "record_raw_value", "type": ["string","null"] },
-            { "name": "record_id",   "type": ["string"] },
-            { "name": "record_time", "type": ["long"] },
-            { "name": "record_type", "type": ["string"] },
-            { "name": "src_ip",      "type": ["string","null"] },
-            { "name": "http_method", "type": ["string","null"] },
-            { "name": "bytes_out",   "type": ["long","null"] },
-            { "name": "http_query",  "type": ["string","null"] },
-            { "name": "http_version","type": ["string","null"] },
-            { "name": "http_status", "type": ["string","null"] },
-            { "name": "identd",      "type": ["string","null"] },
-            { "name": "user",        "type": ["string","null"] }    ]}
-    sql.query: &gt;
-        SELECT count(*) AS connections_count, avg(bytes_out) AS avg_bytes_out, src_ip
-        FROM logisland_events
-        GROUP BY src_ip
-        ORDER BY event_count DESC
-        LIMIT 20
-    max.results.count: 1000
-    output.record.type: top_client_metrics</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Here we will compute every x seconds, the top twenty <code>src_ip</code> for connections count.
-The result of the query will be pushed into to <code>logisland_aggregations</code> topic as new <code>top_client_metrics</code> Record containing <code>connections_count</code> and <code>avg_bytes_out</code> fields.</p>
-</div>
-<div class="paragraph">
-<p>the third match some criteria to send some alerts</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code data-lang="yaml" class="language-yaml hljs">- processor: match_query
-    component: com.hurence.logisland.processor.MatchQuery
-    type: processor
-    documentation: a parser that produce alerts from lucene queries
-    configuration:
-    numeric.fields: bytes_out,connections_count
-    too_much_bandwidth: avg_bytes_out:[25000 TO 5000000]
-    too_many_connections: connections_count:[150 TO 300]
-    output.record.type: threshold_alert</code></pre>
-</div>
+<p>In this stream for example a new record of type <code>too_much_bandwidth</code> would be created if one record match the condition <code>avg_bytes_out:[25000 TO 5000000]</code>. Please read the the following paragraph on Lucene Query Syntax to learn more.</p>
 </div>
 </div>
 </div>
@@ -356,38 +280,29 @@ The result of the query will be pushed into to <code>logisland_aggregations</cod
 <p>For this tutorial we will handle some apache logs with a splitText parser and send them to Elastiscearch
 Connect a shell to your logisland container to launch the following streaming jobs.</p>
 </div>
-<div class="literalblock">
-<div class="content">
-<pre>`docker exec -i -t logisland-quickstarts_logisland_1 bin/logisland.sh --conf conf/query-matching.yml`</pre>
-</div>
+<div class="paragraph">
+<p><code>docker exec -i -t logisland-quickstarts_logisland_1 bin/logisland.sh --conf conf/core/match-queries.yml</code></p>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="check-your-alerts-with-kibana">7. Check your alerts with Kibana</h2>
+<h2 id="check-the-alert-outputs">7. Check the alert outputs</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>As we explore data logs from july 1995 we&#8217;ll have to select an absolute time filter from 1995-06-30 to 1995-07-08 to see the events.</p>
+<p>To see alert records flowing through kafka, run the following command :</p>
 </div>
-<div class="imageblock">
+<div class="literalblock">
 <div class="content">
-<img src="/docs/guides/images/kibana-logisland-aggregates-events.png" alt="Kibana">
+<pre>sudo docker exec -ti logisland-quickstarts_kafka_1 /opt/kafka/bin/kafka-console-consumer.sh  \\
+    --bootstrap-server kafka:9092 --topic logisland_alerts</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>you can filter your events with <code>record_type:connection_alert</code> to get 71733 connections alerts matching your query</p>
+<p>You should see the apache log events such as :</p>
 </div>
-<div class="imageblock">
+<div class="listingblock">
 <div class="content">
-<img src="/docs/guides/images/kibana-blacklisted-host.png" alt="Kibana">
-</div>
-</div>
-<div class="paragraph">
-<p>if we filter now on threshold alerts whith <code>record_type:threshold_alert</code> you&#8217;ll get the 13 src_ip that have been catched by the threshold query.</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="/docs/guides/images/kibana-threshold-alerts.png" alt="Kibana">
+<pre class="highlightjs highlight"><code data-lang="json" class="language-json hljs">@TODO put here a sample alert output</code></pre>
 </div>
 </div>
 </div>

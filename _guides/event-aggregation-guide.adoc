@@ -57,10 +57,7 @@ This guide assumes you already have the completed application from the `getting-
 
 == Logisland job setup
 
-The logisland job for this tutorial is already packaged in the tar.gz assembly and you can find it here :
-
-Our application will add a new stream to the previous one : the sql stream is a special one one use a link:../extensions/kafkarecordstreamsqlaggregator.html[KafkaRecordStreamSQLAggregator].
-This stream defines input/output topics names as well as Serializers, avro schema.
+Our application will add a new stream to the previous one (link:getting-started-guide[Getting Started Guide]) : the sql stream is a special one one use a `KafkaRecordStreamSQLAggregator`. This stream defines input/output topics names as well as Serializers, avro schema.
 
 [TIP] 
 The http://avro.apache.org/docs/1.7.7/spec.html[Avro schema] is set for the input topic and must be same as the avro schema of the output topic for the stream that
@@ -92,8 +89,7 @@ produces the records (please refer to link:getting-started-guide[Getting Started
 }
 ----
 
-The most important part of the `KafkaRecordStreamSQLAggregator` is its `sql.query` property which defines
-a query to apply on the incoming records for the given time window.
+The most important part of the `KafkaRecordStreamSQLAggregator` is its `sql.query` property which defines a query to apply on the incoming records for the given time window.
 
 The following SQL query will be applied on sliding window of 10" of records.
 
@@ -110,8 +106,7 @@ LIMIT 20
 ----    
 
 
-which will consider `logisland_events` topic as SQL table and create 20 output Record with the fields avg_bytes_out, src_ip & record_time.
-the statement with record_time will ensure that the created Records will correspond to the effective input event time (not the actual time).
+which will consider `logisland_events` topic as SQL table and create 20 output Record with the fields `avg_bytes_out`, `src_ip` & `record_time`. The statement with `record_time` will ensure that the created records will correspond to the effective input event time (not the actual time).
 
 
 [source,yaml,subs=attributes+]
@@ -178,30 +173,13 @@ Connect a shell to your logisland container to launch the following streaming jo
 Logisland will handle the parsing of the log lines and structure them as Records. Those will be sent in another Kafka topic.
 
     sudo docker exec -ti logisland-quickstarts_kafka_1 /opt/kafka/bin/kafka-console-consumer.sh  \\ 
-        --bootstrap-server kafka:9092 --topic logisland_agregations
+        --bootstrap-server kafka:9092 --topic logisland_aggregations
 
 
 You should see the apache log events such as : 
 
+
 [source,json]
 ----
-{
-  "id" : "e80c7088-6676-4b56-9aaf-30cfbe1a4367",
-  "type" : "apache_log",
-  "creationDate" : 804571706000,
-  "fields" : {
-    "src_ip" : "166.79.67.111",
-    "record_id" : "e80c7088-6676-4b56-9aaf-30cfbe1a4367",
-    "http_method" : "GET",
-    "record_value" : "166.79.67.111 - - [01/Jul/1995:00:08:26 -0400] \"GET /images/NASA-logosmall.gif HTTP/1.0\" 200 786",
-    "http_query" : "/images/NASA-logosmall.gif",
-    "bytes_out" : "786",
-    "identd" : "-",
-    "http_version" : "HTTP/1.0",
-    "http_status" : "200",
-    "record_time" : 804571706000,
-    "user" : "-",
-    "record_type" : "apache_log"
-  }
-}
+@TODO put here a sample aggregation output
 ----

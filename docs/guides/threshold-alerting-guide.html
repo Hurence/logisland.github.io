@@ -116,10 +116,8 @@ This guide covers:</p>
 <p>In this guide, we expand on the initial log parsing stream that was created as part of the Getting Started Guide.
 We cover how to generate time window metrics on some http traffic (apache log records).</p>
 </div>
-<div class="imageblock">
-<div class="content">
-<img src="/docs/guides/images/logisland-stream-event-aggregation.png" alt="Archi">
-</div>
+<div class="paragraph">
+<p>@TODO make a good diagram</p>
 </div>
 </div>
 </div>
@@ -134,10 +132,10 @@ However, you can go right to the completed example.</p>
 <p>Clone the Git repository: <code>git clone <a href="https://github.com/hurence/logisland-quickstarts.git" class="bare">https://github.com/hurence/logisland-quickstarts.git</a></code>, or download an <a href="https://github.com/hurence/logisland-quickstarts/archive/master.zip">archive</a>.</p>
 </div>
 <div class="paragraph">
-<p>The solution is located in the <code>event-processing</code> directory.</p>
+<p>The solution is located in the <code>conf/core/threshold-alerting.yml</code> file.</p>
 </div>
 <div class="paragraph">
-<p>This guide assumes you already have the completed application from the <code>getting-started</code> directory.</p>
+<p>This guide assumes you already have the completed application from the <code>getting-started</code> guide.</p>
 </div>
 </div>
 </div>
@@ -145,8 +143,7 @@ However, you can go right to the completed example.</p>
 <h2 id="threshold-based-alerting-on-apache-logs-with-redis-kv-store">4. Threshold based alerting on Apache logs with Redis K/V store</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>In a previous tutorial we saw how to use Redis K/V store as a cache storage. In this one we will practice the use of
-<code>ComputeTag</code>, <code>CheckThresholds</code> and <code>CheckAlerts</code> processor in conjunction with this Redis Cache.</p>
+<p>In this tutorial we&#8217;ll how to use Redis K/V store as a cache storage and how to practice the use of <code>ComputeTag</code>, <code>CheckThresholds</code> and <code>CheckAlerts</code> processors in conjunction with this Redis Cache.</p>
 </div>
 <div class="paragraph">
 <p>The following job is made of 2 streaming parts :</p>
@@ -158,44 +155,14 @@ However, you can go right to the completed example.</p>
 </li>
 <li>
 <p>A timer based stream which compute some new tags values based on cached records, check some thresholds cross and send alerts if needed.</p>
-<div class="olist loweralpha">
-<ol class="loweralpha" type="a">
-<li>
-<p>note::</p>
-<div class="literalblock">
-<div class="content">
-<pre>Be sure to know of to launch a logisland Docker environment by reading the `prerequisites &lt;./prerequisites.html&gt;`_ section</pre>
-</div>
-</div>
-</li>
-</ol>
-</div>
-</li>
-</ol>
-</div>
-<div class="paragraph">
-<p>The full logisland job for this tutorial is already packaged in the tar.gz assembly and you can find it here :</p>
-</div>
-<div class="olist loweralpha">
-<ol class="loweralpha" type="a">
-<li>
-<p>code-block:: sh</p>
-<div class="literalblock">
-<div class="content">
-<pre>docker exec -i -t conf_logisland_1 vim conf/threshold-alerting.yml</pre>
-</div>
-</div>
 </li>
 </ol>
 </div>
 <div class="paragraph">
 <p>We will start by explaining each part of the config file.</p>
 </div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="controller-service-part">5. Controller service part</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="controller-service-part">4.1. Controller service part</h3>
 <div class="paragraph">
 <p>The <code>controllerServiceConfigurations</code> part is here to define all services that be shared by processors within the whole job, here a Redis KV cache service that will be used later in the <code>BulkPut</code> processor.</p>
 </div>
@@ -225,10 +192,8 @@ However, you can go right to the completed example.</p>
 </div>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="first-stream-parse-logs-and-compute-tags">6. First stream : parse logs and compute tags</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="first-stream-parse-logs-and-compute-tags">4.2. First stream : parse logs and compute tags</h3>
 <div class="paragraph">
 <p>Here the stream will read all the logs sent in <code>logisland_raw</code> topic and push the processing output into <code>logisland_events</code> topic as Json serialized records.</p>
 </div>
@@ -244,8 +209,8 @@ However, you can go right to the completed example.</p>
         kafka.input.topics.serializer: none
         kafka.output.topics.serializer: com.hurence.logisland.serializer.JsonSerializer
         kafka.error.topics.serializer: com.hurence.logisland.serializer.JsonSerializer
-        kafka.metadata.broker.list: sandbox:9092
-        kafka.zookeeper.quorum: sandbox:2181
+        kafka.metadata.broker.list: localhost:9092
+        kafka.zookeeper.quorum: localhost:2181
         kafka.topic.autoCreate: true
         kafka.topic.default.partitions: 4
         kafka.topic.default.replicationFactor: 1</code></pre>
@@ -272,7 +237,7 @@ be parsed as an event which will be pushed back to Kafka in the <code>logisland_
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="yaml" class="language-yaml hljs"># change field name 'bytes_out' to `record_value`
+<pre class="highlightjs highlight"><code data-lang="yaml" class="language-yaml hljs"># change field name `bytes_out` to `record_value`
 - processor: normalize_fields
     component: com.hurence.logisland.processor.NormalizeFields
     configuration:
@@ -357,10 +322,8 @@ Here a new record with an <code>record_id</code> set to <code>computed1</code> a
 </div>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="second-stream-check-threshold-cross-and-alerting">7. Second stream : check threshold cross and alerting</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="second-stream-check-threshold-cross-and-alerting">4.3. Second stream : check threshold cross and alerting</h3>
 <div class="paragraph">
 <p>The second stream will read all the logs sent in <code>logisland_events</code> topic and push the processed outputs (threshold_cross &amp; alerts records) into <code>logisland_alerts</code> topic as Json serialized records.</p>
 </div>
@@ -428,21 +391,20 @@ Here a new record with an <code>record_id</code> set to <code>computed1</code> a
 </div>
 </div>
 </div>
+</div>
 <div class="sect1">
-<h2 id="run-the-job">8. Run the job</h2>
+<h2 id="run-the-job">5. Run the job</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Connect a shell to your logisland container to launch the following streaming jobs.</p>
 </div>
-<div class="literalblock">
-<div class="content">
-<pre>docker exec -i -t conf_logisland_1 bin/logisland.sh --conf conf/threshold-alerting.yml</pre>
-</div>
+<div class="paragraph">
+<p><code>docker exec -i -t logisland-quickstarts_logisland_1 vim conf/core/threshold-alerting.yml</code></p>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="inspect-the-logs-and-alerts">9. Inspect the logs and alerts</h2>
+<h2 id="inspect-the-logs-and-alerts">6. Inspect the logs and alerts</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>For this part of the tutorial we will use <a href="https://redis-py.readthedocs.io/en/latest/">redis-py a Python client for Redis</a>. You can install it by following instructions given on <a href="https://github.com/andymccurdy/redis-py">redis-py on github</a>.</p>

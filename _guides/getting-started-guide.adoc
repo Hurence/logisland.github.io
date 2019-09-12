@@ -187,7 +187,7 @@ Start Zookeeper, Kafka, Loggen & Logisland container with the following command 
 
 == Launch Logisland Application
 
-Now you can now run the job inside the logisland container
+Now you can run the job inside the logisland container
 
 `sudo docker exec -ti logisland-quickstarts_logisland_1 ./bin/logisland.sh --conf conf/core/parse-apache-logs.yml`
 
@@ -288,7 +288,7 @@ image:logisland-getting-started.png[Spark Streaming]
 
 The main metric here is the lag or scheduling delay, which one you want to be as low as possible (near zero) or at least no increasing constantly otherwise this would be a sign that you need to make your app scale, it can be by increasing the partitionning of Kafka topics and the number of cores that process simultaneously your data. This is a huge topic.
 
-Another metric is processing time, which give us here about 35ms for 
+Another metric is processing time, which gives us some insights about the processing capabilities of our setup. This where the logisland scalabity can be viewed (add more kafka topics and spark processors and you'll see how you can handle a more intense workload)
 
 
 == Stop the solution
