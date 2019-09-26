@@ -49,17 +49,23 @@ This guide assumes you already have the completed application from the `getting-
 
 == Environment setup
 
-Start Zookeeper, Kafka, Logisland container with the following command `docker-compose up -d`
+Start Zookeeper, Kafka, Logisland container with the following command `sudo docker-compose -f docker-compose.yml -f docker-compose.historian.yml up -d`
 
-== Setup Logsialnd Job
+
+
+
+
+== Setup Logisland Job
 
 If you want to run directly the solution juste issu the following command within {quickstarts-clone-url} folder
-`sudo docker exec -ti logisland-quickstarts_logisland_1 ./bin/logisland.sh --conf conf/timeseries/parse-timeseries-structured.yml`
+
+`sudo docker exec -ti logisland-quickstarts_logisland_1 ./bin/logisland.sh --conf conf/timeseries/timeseries-parsing-structured.yml`
 
 otherwise open an editor 
 
 
 == the timeseries app
+here is the logisland job for timeseries parsing, chunking and indexing
 
 [source,yml]
 ----
@@ -157,6 +163,15 @@ engine:
 
 The folder `data/timeseries` contins some files that will be parsed with the following pattern `timestamp;tagname;value;quality`
 
+
+If you want to see what is flowing into `logisland_raw` topic, just run the following :
+
+`sudo docker exec -ti logisland-quickstarts_kafka_1 /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server kafka:9092 --topic logisland_raw`
+
+
+you should see some random metrics
+
+
 [source,csv]
 ----
 07/02/2019 15:43:01;068_PI01;61.5777410770347;100
@@ -182,22 +197,26 @@ The folder `data/timeseries` contins some files that will be parsed with the fol
 
 
 == Points
+
+`sudo docker exec -ti logisland-quickstarts_kafka_1 /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server kafka:9092 --topic logisland_measures`
+
+
 Each points is first parsed as 
 
 [source,json,subs=attributes+]
 ----
 {
-  "id" : "c08b0cd2-4fa8-4ffe-8d85-7e320962c983",
+  "id" : "3752fb69-0d37-41a6-9d8f-9d19ad341eee",
   "type" : "historian_serie",
-  "creationDate" : 1549554191000,
+  "creationDate" : 1569509387301,
   "fields" : {
-    "record_id" : "c08b0cd2-4fa8-4ffe-8d85-7e320962c983",
-    "tagname" : "1C11.TE03",
-    "record_value" : 549.025282963574,
-    "record_name" : "1C11.TE03",
-    "record_time" : 1549554191000,
+    "quality" : 100.0,
+    "record_id" : "3752fb69-0d37-41a6-9d8f-9d19ad341eee",
+    "record_name" : "pressure",
+    "record_time" : 1569509387301,
     "record_type" : "historian_serie",
-    "quality" : 100.0
+    "record_value" : 50.59789543992153,
+    "tagname" : "pressure"
   }
 }
 ----
@@ -205,34 +224,59 @@ Each points is first parsed as
 
 == Timeseries chunks with analytics
 
+
+`sudo docker exec -ti logisland-quickstarts_kafka_1 /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server kafka:9092 --topic logisland_metrics` 
+
+
 you should see somethins like this in your logisland logs
 
 [source,json,subs=attributes+]
 ----
-Record{fields={record_id=Field{name='record_id', type=string, rawValue=f8c9d251-5ef4-482a-8aef-5f0ecc5d1c00}, record_key=Field{name='record_key', type=null, rawValue=null}, record_value=Field{name='record_value', type=string, rawValue={
-  "id" : "5231d650-4104-4b2d-b97b-2b1923de9bfa",
+{
+  "id" : "55967ac0-a683-42d4-b3f6-ff8a3ed1be0f",
   "type" : "historian_serie",
-  "creationDate" : 1563204738441,
+  "creationDate" : 1569509486549,
   "fields" : {
-    "record_value" : "[B@78f60cb6",
-    "max" : 894.20699829388,
-    "trend" : false,
-    "record_chunk_end" : 1549554181000,
-    "count" : 1.0,
-    "record_type" : "historian_serie",
+    "chunk_avg" : 50.090690268806696,
+    "chunk_count" : 50.0,
+    "chunk_end" : 1569509486201,
+    "chunk_max" : 97.8005221466734,
+    "chunk_min" : -1.2300222783725445,
+    "chunk_sax" : "eadcfdcdee",
+    "chunk_size" : 50,
+    "chunk_size_bytes" : 531,
+    "chunk_start" : 1569509485108,
+    "chunk_trend" : true,
+    "chunk_window_ms" : 1093,
     "quality" : "100.0",
-    "record_id" : "5231d650-4104-4b2d-b97b-2b1923de9bfa",
-    "tagname" : "068_SI01",
-    "min" : 894.20699829388,
-    "avg" : 894.20699829388,
-    "record_chunk_start" : 1549554181000,
-    "record_name" : "068_SI01",
-    "record_time" : 1563204738441
+    "record_id" : "55967ac0-a683-42d4-b3f6-ff8a3ed1be0f",
+    "record_name" : "temp_a",
+    "record_time" : 1569509486549,
+    "record_type" : "historian_serie",
+    "record_value" : "[B@6dc57670",
+    "tagname" : "temp_a"
   }
-}}, record_time=Field{name='record_time', type=long, rawValue=1563204738442}, record_type=Field{name='record_type', type=string, rawValue=generic}}, time=Mon Jul 15 15:32:18 GMT 2019, type='generic', id='f8c9d251-5ef4-482a-8aef-5f0ecc5d1c00'}
+}
 ----
 
 
+
+== Timeseries with solr
+
+get all chunks for temp_a tag
+
+`curl -XGET http://localhost:8983/solr/historian/select?q=tagname:temp_a`
+
+
+get all chunks containing becd sax string
+
+`curl -XGET http://localhost:8983/solr/historian/select?q=chunk_sax:becd` 
+
+
+
+to remove all containers run the following
+
+    `docker-compose -f docker-compose.yml -f docker-compose.historian.yml down` 
 
 // todo 
 * add DDC threshold param to record converter
