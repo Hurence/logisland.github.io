@@ -39,8 +39,18 @@ These instructions will get you a copy of the Logisland.io website up and runnin
 
 Please read [CONTRIBUTING.md](https://github.com/hurence/logisland.io/blob/master/CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
 
-**Important:** the guides are maintained in the main Logisland repository and pull requests should be submitted there:
-https://github.com/hurence/logisland/tree/master/docs/src/main/asciidoc.
+### Development
+
+The files to edit are located under :
+* ./_guides
+    * containing the guides
+* ./_data
+    * containing some custom files. extensions.yaml is builded in 
+    [logisland-documentation](https://github.com/Hurence/logisland/tree/master/logisland-documentation) module 
+    in logisland project.
+
+These are adoc files that are being used by jekyll to build html files.
+
 
 ## License
 
