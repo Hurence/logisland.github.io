@@ -34,7 +34,6 @@ permalink: /guides/
 
 ### Extensions
 
-
 - [Using Components]({{site.baseurl}}/guides/logisland-components-guide)
 - [Logisland Java API]({{site.baseurl}}/guides/logisland-api-guide)
 - [Logisland REST API]({{site.baseurl}}/guides/logisland-rest-api-guide)
@@ -47,7 +46,9 @@ permalink: /guides/
 
 - [User sessions]({{site.baseurl}}/guides/web-sessionization-guide)
 
+### Http query
 
+- [use_openfaas_methods]({{site.baseurl}}/guides/openfaas-guide)
 
 
 

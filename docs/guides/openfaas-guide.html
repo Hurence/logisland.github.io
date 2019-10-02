@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Logisland - Calling openfaas methods</title>
+  <script src="/docs/assets/javascript/highlightjs-pack.js" type="text/javascript"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Logisland: Supersonic Subatomic Java">
+  <link rel="shortcut icon" type="image/png" href="/docs/favicon.ico" >
+  <link rel="stylesheet" href="/docs/assets/css/main.css" />
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css" integrity="sha384-lKuwvrZot6UHsBSfcMvOkWwlCMgc0TaWr+30HWe3a4ltaBwTZhyTEggF5tJv8tbt" crossorigin="anonymous">
+  <!-- Google Tag Manager -->
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-T9XHGDR');</script>
+  <!-- End Google Tag Manager -->
+  <!-- Syntax highlighting -->
+  <script>hljs.initHighlightingOnLoad();</script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/list.js/1.5.0/list.min.js"></script>
+</head>
+
+<body class="guides">
+  <!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-T9XHGDR"
+  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+  <!-- End Google Tag Manager (noscript) -->
+
+  <div class="content">
+    <div class="navigation-wrapper">
+  <div class="width-12-12">
+    <div class="header navigation">
+      <div class="logo-wrapper">
+        <a href="/docs/"><img src="/docs/assets/images/logisland-logo.png" class="project-logo" title="Logisland"></a>
+      </div>
+      <div class="nav-container">
+        <nav>
+          <div class="nav-mobile"><a id="nav-toggle" href="#!"><span></span></a></div>
+          <ul class="nav-list">
+            <li>
+              <a href="/docs/get-started/" class="">Get Started</a>
+            </li>
+            <li>
+              <a href="/docs/guides/" class="active">Guides</a>
+            </li>
+            <li>
+              <a href="/docs/extensions/" class="">Extensions</a>
+            </li>
+            <li>
+              <a href="/docs/community/" class="">Community</a>
+            </li>
+            <li>
+              <a href="/docs/blog/" class="">Blog</a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </div>
+</div>
+
+    <div class="guides">
+  <div class="width-12-12">
+    <h1 class="text-caps">Logisland - Calling openfaas methods</h1>
+    <div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Learn how to communicate with an openfaas server to execute some custom code of your company.</p>
+</div>
+<div class="paragraph">
+<p>This guide covers:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>rest service</p>
+</li>
+<li>
+<p>executing request against a faas server and retrieving the response</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="prerequisites">1. Prerequisites</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To complete this guide, you need:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>less than 15 minutes</p>
+</li>
+<li>
+<p>an IDE</p>
+</li>
+<li>
+<p>JDK 1.8+ installed with <code>JAVA_HOME</code> configured appropriately</p>
+</li>
+<li>
+<p>Apache Maven 3.5.3+</p>
+</li>
+<li>
+<p>a running openfaas server available from your machine. (See openfaas documentation to install one)</p>
+</li>
+<li>
+<p>to be familiar with logisland (please refer to other guides first otherwise)</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="setup-openfaas-uppercase-function">2. Setup openfaas uppercase function</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>We built a custom method that returns request body in uppercase. You will have to deploy it to your openfaas server to follow this tutorial.
+You can use your own function if you wish but you may have to adapt the construction of the request (the logisland conf job) accordingly.</p>
+</div>
+<div class="paragraph">
+<p>TODO</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="solution">3. Solution</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>We recommend that you follow the instructions in the next sections and create the application step by step.
+However, you can go right to the completed example.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Clone the Git repository: <code>git clone <a href="https://github.com/hurence/logisland-quickstarts.git" class="bare">https://github.com/hurence/logisland-quickstarts.git</a></code>, or download an <a href="https://github.com/hurence/logisland-quickstarts/archive/master.zip">archive</a>.</p>
+</li>
+<li>
+<p>The solution is located in the <code>conf/rest/uppercase_input_with_openfaas.yml</code> file.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="logisland-job-setup">4. Logisland job setup</h2>
+<div class="sectionbody">
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>We will parse some apache logs</p>
+</li>
+<li>
+<p>Then use those record as body to a custom openfaas method that returns request body&#8217;s in uppercase (body&#8217;s request is expected to be text). Retrieve this response in a field
+Anyway as of today the rest service only support body as string.</p>
+</li>
+<li>
+<p>Extract the response from the root record to keep only response</p>
+</li>
+<li>
+<p>We will verify that output records in kafka are in uppercase.</p>
+</li>
+</ol>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Notice that you will have to replace
+<code>rest.lookup.url: <a href="http://192.168.99.100:31112/function/${function_name}" class="bare">http://192.168.99.100:31112/function/${function_name}</a></code>
+with the endpoint of your openfaas server !
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="yaml" class="language-yaml hljs">#########################################################################################################
+# Logisland configuration script template
+#########################################################################################################
+
+version: 1.2.0
+documentation: LogIsland main config file. Put here every engine or component config
+
+#########################################################################################################
+# engine
+engine:
+  component: com.hurence.logisland.engine.spark.KafkaStreamProcessingEngine
+  type: engine
+  documentation: A logisland stream that convert all string to uppercase using an openfaas method
+  configuration:
+    spark.app.name: OpenFaasDemo
+    spark.master: local[4]
+    spark.driver.memory: 1g
+    spark.driver.cores: 1
+    spark.executor.memory: 2g
+    spark.executor.instances: 4
+    spark.executor.cores: 2
+    spark.yarn.queue: default
+    spark.yarn.maxAppAttempts: 4
+    spark.yarn.am.attemptFailuresValidityInterval: 1h
+    spark.yarn.max.executor.failures: 20
+    spark.yarn.executor.failuresValidityInterval: 1h
+    spark.task.maxFailures: 8
+    spark.serializer: org.apache.spark.serializer.KryoSerializer
+    spark.streaming.batchDuration: 10000
+    spark.streaming.backpressure.enabled: false
+    spark.streaming.unpersist: false
+    spark.streaming.blockInterval: 500
+    spark.streaming.kafka.maxRatePerPartition: 3000
+    spark.streaming.timeout: -1
+    spark.streaming.kafka.maxRetries: 3
+    spark.streaming.ui.retainedBatches: 200
+    spark.streaming.receiver.writeAheadLog.enable: false
+    spark.ui.port: 4053
+
+  controllerServiceConfigurations:
+
+    - controllerService: faas_service_rest
+      component: com.hurence.logisland.rest.service.lookup.RestLookupService
+      configuration:
+        rest.lookup.url: http://192.168.99.100:31112/function/${function_name}
+        record.serializer: com.hurence.logisland.serializer.ExtendedJsonSerializer
+        #record.schema: ff
+        rest.lookup.basic.auth.username: admin
+        rest.lookup.basic.auth.password: 4f1c1b3f032b635cf1a4b1cb3d9a514412d0b7ab
+        rest.lookup.digest.auth: false
+        #eventuellement SSL config dans un second temps
+
+  streamConfigurations:
+
+    - stream: parsing_stream
+      component: com.hurence.logisland.stream.spark.KafkaRecordStreamParallelProcessing
+      configuration:
+        kafka.input.topics: logisland_raw
+        kafka.output.topics: logisland_events
+        kafka.error.topics: logisland_errors
+        kafka.input.topics.serializer: none
+        kafka.output.topics.serializer: com.hurence.logisland.serializer.JsonSerializer
+        kafka.error.topics.serializer: com.hurence.logisland.serializer.JsonSerializer
+        kafka.metadata.broker.list: kafka:9092
+        kafka.zookeeper.quorum: zookeeper:2181
+        kafka.topic.autoCreate: true
+        kafka.topic.default.partitions: 4
+        kafka.topic.default.replicationFactor: 1
+      processorConfigurations:
+
+        # a parser that produce events from an apache log REGEX
+        - processor: apache_parser
+          component: com.hurence.logisland.processor.SplitText
+          configuration:
+            record.type: apache_log
+            value.regex: (\S+)\s+(\S+)\s+(\S+)\s+\[([\w:\/]+\s[+\-]\d{4})\]\s+"(\S+)\s+(\S+)\s*(\S*)"\s+(\S+)\s+(\S+)
+            value.fields: src_ip,identd,user,record_time,http_method,http_query,http_version,http_status,bytes_out
+        # add field for openfaas method to use
+        - processor: add_function_name
+          component: com.hurence.logisland.processor.AddFields
+          configuration:
+            function_name: uppercase
+        # add field if defect found
+        - processor: defect_tagger
+          component: com.hurence.logisland.rest.processor.lookup.CallRequest
+          configuration:
+            http.client.service: faas_service_rest
+            strategy: overwrite_existing
+            field.http.response: copy_to_uppercase
+            request.method: "POST"
+            request.mime.type: "application/json"
+            input.as.body: true
+        - processor: flatten
+          component: com.hurence.logisland.processor.FlatMap
+          documentation: "extract response from root record and remove root record"
+          configuration:
+            keep.root.record: false
+            copy.root.record.fields: false
+            leaf.record.type: http_response</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="setting-up-underlyning-services">5. Setting up Underlyning services</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Apache Kafka is pitched as a Distributed Streaming Platform. In Kafka lingo, Producers continuously generate data (streams) and Consumers are responsible for processing, storing and analysing it. Kafka Brokers are responsible for ensuring that in a distributed scenario the data can reach from Producers to Consumers without any inconsistency. A set of Kafka brokers and another piece of software called zookeeper constitute a typical Kafka deployment.</p>
+</div>
+<div class="paragraph">
+<p>Let’s start with a single broker instance. In the <code>logisland-quickstarts</code> directory create your <code>docker-compose.yml</code> with the following content:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="yml" class="language-yml hljs">version: '3'
+services:
+  zookeeper:
+    image: wurstmeister/zookeeper
+    ports:
+      - "2181:2181"
+    networks:
+      - logisland
+
+  kafka:
+    image: wurstmeister/kafka:0.10.2.1
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_ADVERTISED_HOST_NAME: kafka
+      KAFKA_CREATE_TOPICS: "test:1:1"
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./data:/tmp/data
+    networks:
+      - logisland
+
+  logisland:
+    image: hurence/logisland:latest
+    entrypoint:
+      - "tail"
+      - "-f"
+      - "bin/logisland.sh"
+    ports:
+      - '4050:4050'
+    volumes:
+      - ./conf:/opt/logisland/conf
+    environment:
+      KAFKA_HOME: /opt/kafka_2.11-0.10.2.2
+      KAFKA_BROKERS: kafka:9092
+      ZK_QUORUM: zookeeper:2181
+      REDIS_CONNECTION: redis:6379
+    networks:
+      - logisland
+
+  loggen:
+    image: hurence/loggen:latest
+    networks:
+      - logisland
+    environment:
+      LOGGEN_NUM: 1
+      KAFKA_BROKERS: kafka:9092
+
+  redis:
+    hostname: redis
+    image: 'redis:latest'
+    ports:
+      - '6379:6379'
+    networks:
+      - logisland
+
+volumes:
+  kafka-home:
+
+networks:
+  logisland:</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Be carefull here to not generate too many log if your openfaas can not follow up ! Here I run a single container for my function so I set up loggen this way :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>[source,yml,subs=attributes+]
+  loggen:
+    image: hurence/loggen:latest
+    networks:
+      - logisland
+    environment:
+      LOGGEN_NUM: 1
+      KAFKA_BROKERS: kafka:9092</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Start Zookeeper, Kafka, Loggen &amp; Logisland container with the following command <code>docker-compose up -d</code></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="launch-the-script">6. Launch the script</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Connect a shell to your logisland container to launch the following streaming jobs.</p>
+</div>
+<div class="paragraph">
+<p><code>docker exec -i -t logisland-quickstarts_logisland_1 bin/logisland.sh --conf conf/rest/uppercase_input_with_openfaas.yml</code></p>
+</div>
+<div class="sect2">
+<h3 id="see-what-we-have-in-return">6.1. See what we have in return</h3>
+<div class="paragraph">
+<p>Logisland handles the parsing of the log lines and structure them as Records before sending them to <code>logisland_events</code>. Those will be sent in another Kafka topic.</p>
+</div>
+<div class="paragraph">
+<p><code>docker exec -ti logisland-quickstarts_kafka_1 /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server kafka:9092 --topic logisland_events</code></p>
+</div>
+<div class="paragraph">
+<p>You should see the apache log events such as :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="shell" class="language-shell hljs">{
+  "id" : "e363889d-a00c-4084-b733-e8eb6dc759ac",
+  "type" : "http_response",
+  "creationDate" : 1570028572284,
+  "fields" : {
+    "RECORD_VALUE" : "123.124.125.126 - - [02/OCT/2019:15:02:38 +0200] \"GET /WP-CONTENT HTTP/1.0\" 200 5034",
+    "CREATIONDATE" : 1570021358000,
+    "IDENTD" : "-",
+    "RECORD_TIME" : 1570021358000,
+    "HTTP_STATUS" : "200",
+    "SRC_IP" : "123.124.125.126",
+    "HTTP_VERSION" : "HTTP/1.0",
+    "USER" : "-",
+    "record_type" : "http_response",
+    "BYTES_OUT" : "5034",
+    "record_id" : "e363889d-a00c-4084-b733-e8eb6dc759ac",
+    "FUNCTION_NAME" : "UPPERCASE",
+    "RECORD_TYPE" : "APACHE_LOG",
+    "RECORD_ID" : "A0CABEBA-27F7-45F4-B484-55FA8C555CE1",
+    "HTTP_QUERY" : "/WP-CONTENT",
+    "ID" : "A0CABEBA-27F7-45F4-B484-55FA8C555CE1",
+    "record_time" : 1570028572284,
+    "TYPE" : "APACHE_LOG",
+    "HTTP_METHOD" : "GET"
+  }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>On constate que tous les champs sont bien en uppercase. A l&#8217;exception des champs techniques et des champs rajouté par le processor FlatMap.</p>
+</div>
+</div>
+</div>
+</div>
+  </div>
+</div>
+
+  </div>
+
+  <div class="content project-footer">
+  <div class="footer-section">
+    <div class="logo-wrapper">
+      <a href="/docs/"><img src="/docs/assets/images/logisland-logo.png" class="project-logo" title="Logisland"></a>
+    </div>
+  </div>
+  <div class="grid-wrapper">
+    <p class="grid__item width-3-12">Logisland is open. Logisland and its extensions are available under the <a href='https://www.apache.org/licenses/LICENSE-2.0' target='_blank'>Apache Software License 2.0</a> or compatible license.<br /><br />This website was built with <a href='https://jekyllrb.com/' target='_blank'>Jekyll</a> is hosted on <a href='https://pages.github.com/' target='_blank'>Github Pages</a> and is completely open source. If you want to make it better, <a href='https://github.com/hurence/logisland.io' target='_blank'>fork the website</a> and show us what you’ve got.</p>
+
+    
+      <div class="width-1-12 project-links">
+        <span>Navigation</span>
+        <ul class="footer-links width-1-12">
+          
+            <li><a href="/docs">Home</a></li>
+          
+            <li><a href="/docs/guides">Guides</a></li>
+          
+            <li><a href="/docs/get-started">Get Started</a></li>
+          
+        </ul>
+      </div>
+    
+      <div class="width-1-12 project-links">
+        <span>Contribute</span>
+        <ul class="footer-links width-1-12">
+          
+            <li><a href="https://twitter.com/LogislandC">Follow us</a></li>
+          
+            <li><a href="https://github.com/hurence/logisland">GitHub</a></li>
+          
+        </ul>
+      </div>
+    
+      <div class="width-1-12 project-links">
+        <span>Get Help</span>
+        <ul class="footer-links width-1-12">
+          
+            <li><a href="https://gitter.im/logisland/logisland">Chatroom</a></li>
+          
+            <li><a href="https://groups.google.com/forum/#!forum/logisland-dev">Google&nbsp;Groups</a></li>
+          
+            <li><a href="/docs/faq">FAQ</a></li>
+          
+        </ul>
+      </div>
+    
+
+    
+      <div class="width-6-12 more-links">
+        <span>Logisland is proudly made of</span>
+        <ul class="footer-links">
+          
+            <li><a href="https://kafka.apache.org" target="_blank">Kafka</a></li>
+          
+            <li><a href="https://spark.apache.org" target="_blank">Spark</a></li>
+          
+        </ul>
+      </div>
+    
+  </div>
+</div>
+  <div class="content redhat-footer">
+  <div class="grid-wrapper">
+    <span class="licence">
+      <i class="fab fa-creative-commons"></i><i class="fab fa-creative-commons-by"></i> <a href="https://creativecommons.org/licenses/by/3.0/" target="_blank">CC by 3.0</a>
+    </span>
+    <span class="redhat">
+      an Hurence sponsored project   
+    </span>
+    <span class="redhat-logo">
+      <a href="https://www.hurence.com/" target="_blank"><img src="/docs/assets/images/logo-hurence.png"></a>
+    </span>
+  </div>
+</div>
+
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+  <script type="text/javascript" src="/docs/assets/javascript/mobile-nav.js"></script>
+  <script type="text/javascript" src="/docs/assets/javascript/scroll-down.js"></script>
+  <script type="text/javascript">
+    if (("undefined" !== typeof _satellite) && ("function" === typeof _satellite.pageBottom)) {
+        _satellite.pageBottom();
+    }
+  </script>
+  
+</body>
+
+</html>
