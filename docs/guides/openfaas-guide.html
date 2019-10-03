@@ -105,7 +105,7 @@
 <p>Apache Maven 3.5.3+</p>
 </li>
 <li>
-<p>a running openfaas server available from your machine. (See openfaas documentation to install one)</p>
+<p>a running openfaas server available from your machine. (See openfaas documentation to install one, for exemple <a href="https://docs.openfaas.com/deployment/kubernetes/" class="bare">https://docs.openfaas.com/deployment/kubernetes/</a>)</p>
 </li>
 <li>
 <p>to be familiar with logisland (please refer to other guides first otherwise)</p>
@@ -115,19 +115,7 @@
 </div>
 </div>
 <div class="sect1">
-<h2 id="setup-openfaas-uppercase-function">2. Setup openfaas uppercase function</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>We built a custom method that returns request body in uppercase. You will have to deploy it to your openfaas server to follow this tutorial.
-You can use your own function if you wish but you may have to adapt the construction of the request (the logisland conf job) accordingly.</p>
-</div>
-<div class="paragraph">
-<p>TODO</p>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="solution">3. Solution</h2>
+<h2 id="solution">2. Solution</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>We recommend that you follow the instructions in the next sections and create the application step by step.
@@ -146,6 +134,100 @@ However, you can go right to the completed example.</p>
 </div>
 </div>
 <div class="sect1">
+<h2 id="setup-openfaas-uppercase-function">3. Setup openfaas uppercase function</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>We built a custom method that returns request body in uppercase. You will have to deploy it to your openfaas server to follow this tutorial.
+You can use your own function if you wish but you may have to adapt the construction of the request (the logisland conf job) accordingly.</p>
+</div>
+<div class="paragraph">
+<p>You must be on a machine with the faas-cli installed and that can reach your openfaas cluster.</p>
+</div>
+<div class="paragraph">
+<p>You need to login into your open faas cluster depending on its security settings using the command <code>faas-cli login</code> (see the documentation for more info).
+In my case I use basic auth with a username and a password :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">echo -n $OPENFAAS_PASSWORD | faas-cli login -u $OPENFAAS_USERNAME --password-stdin</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>the uppercase file is located at <code>openfaas/uppercase.yml</code></p>
+</div>
+<div class="paragraph">
+<p>Its content is the following :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="yaml" class="language-yaml hljs">version: 1.0
+provider:
+  name: openfaas
+functions:
+  uppercase:
+    image: hurence/openfaas-uppercase:latest</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Run this command to deploy this function to your openfaas cluster :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">faas-cli deploy -f openfaas/uppercase.yml</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you get an error try specifying your gateway :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">faas-cli deploy -f openfaas/uppercase.yml --gateway $OPENFAAS_GATEWAY_ADDRESS:$OPENFAAS_GATEWAY_PORT</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>New verify that your method is correctly deployed (if openfass is running on kubernetes):</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">kubectl get pod -n openfaas-fn</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>should give you an a pod which name contains <code>uppercase</code>. Wait until it is READY.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>NAME                                READY   STATUS    RESTARTS   AGE
+base64-556fc5bfd5-krpkw             1/1     Running   4          7d20h
+colorise-79c948fbd6-gphs7           1/1     Running   2          47h
+colorization-64db576bd8-rtq4l       1/1     Running   1          26h
+sentimentanalysis-6f88b699d-mzjrp   1/1     Running   4          7d18h
+uppercase-5b5db46cfb-zqvlv          1/1     Running   0          25m
+wordcount-7cc5cb4996-s2q8v          1/1     Running   4          7d20h</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Then verify you can use it by running this command :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">echo "Hello World !" | faas-cli invoke uppercase</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>should return you</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">HELLO WORLD !</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If it&#8217;s the case your all set up with openfaas !</p>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="logisland-job-setup">4. Logisland job setup</h2>
 <div class="sectionbody">
 <div class="olist arabic">
@@ -154,8 +236,8 @@ However, you can go right to the completed example.</p>
 <p>We will parse some apache logs</p>
 </li>
 <li>
-<p>Then use those record as body to a custom openfaas method that returns request body&#8217;s in uppercase (body&#8217;s request is expected to be text). Retrieve this response in a field
-Anyway as of today the rest service only support body as string.</p>
+<p>Then use those record as body to our custom openfaas method. Retrieve the response in a field.
+As of today the rest service only support body as string, when you use input record as body it serialize the record in JSON.</p>
 </li>
 <li>
 <p>Extract the response from the root record to keep only response</p>
@@ -172,12 +254,27 @@ Anyway as of today the rest service only support body as string.</p>
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-Notice that you will have to replace
-<code>rest.lookup.url: <a href="http://192.168.99.100:31112/function/${function_name}" class="bare">http://192.168.99.100:31112/function/${function_name}</a></code>
-with the endpoint of your openfaas server !
+Notice that you will have to configure the service depending on your openfass server :
 </td>
 </tr>
 </table>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="yaml" class="language-yaml hljs">  - controllerService: faas_service_rest
+    component: com.hurence.logisland.rest.service.lookup.RestLookupService
+    configuration:
+        rest.lookup.url: $OPENFAAS_GATEWAY_ADDRESS:$OPENFAAS_GATEWAY_PORT/function/${function_name}
+        record.serializer: com.hurence.logisland.serializer.ExtendedJsonSerializer
+        #record.schema: ff
+        rest.lookup.basic.auth.username: $OPENFAAS_USERNAME
+        rest.lookup.basic.auth.password: $OPENFAAS_PASSWORD
+        rest.lookup.digest.auth: false
+        #eventuellement SSL config dans un second temps</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>SSL security is not supported yet.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -225,11 +322,11 @@ engine:
     - controllerService: faas_service_rest
       component: com.hurence.logisland.rest.service.lookup.RestLookupService
       configuration:
-        rest.lookup.url: http://192.168.99.100:31112/function/${function_name}
+        rest.lookup.url: $OPENFAAS_GATEWAY_ADDRESS:$OPENFAAS_GATEWAY_PORT/function/${function_name}
         record.serializer: com.hurence.logisland.serializer.ExtendedJsonSerializer
         #record.schema: ff
-        rest.lookup.basic.auth.username: admin
-        rest.lookup.basic.auth.password: 4f1c1b3f032b635cf1a4b1cb3d9a514412d0b7ab
+        rest.lookup.basic.auth.username: $OPENFAAS_USERNAME
+        rest.lookup.basic.auth.password: $OPENFAAS_PASSWORD
         rest.lookup.digest.auth: false
         #eventuellement SSL config dans un second temps
 
@@ -430,7 +527,7 @@ networks:
 </div>
 </div>
 <div class="paragraph">
-<p>On constate que tous les champs sont bien en uppercase. A l&#8217;exception des champs techniques et des champs rajouté par le processor FlatMap.</p>
+<p>We can see here that all fields are indeed in uppercase except for technical fields and other fields added by the FlatMap processor.</p>
 </div>
 </div>
 </div>

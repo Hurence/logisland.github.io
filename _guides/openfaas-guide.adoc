@@ -27,15 +27,8 @@ To complete this guide, you need:
 * an IDE
 * JDK 1.8+ installed with `JAVA_HOME` configured appropriately
 * Apache Maven 3.5.3+
-* a running openfaas server available from your machine. (See openfaas documentation to install one)
+* a running openfaas server available from your machine. (See openfaas documentation to install one, for exemple https://docs.openfaas.com/deployment/kubernetes/)
 * to be familiar with logisland (please refer to other guides first otherwise)
-
-== Setup openfaas uppercase function
-
-We built a custom method that returns request body in uppercase. You will have to deploy it to your openfaas server to follow this tutorial.
-You can use your own function if you wish but you may have to adapt the construction of the request (the logisland conf job) accordingly.
-
-TODO
 
 == Solution
 
@@ -45,19 +38,105 @@ However, you can go right to the completed example.
 * Clone the Git repository: `git clone {quickstarts-clone-url}`, or download an {quickstarts-archive-url}[archive].
 * The solution is located in the `conf/rest/uppercase_input_with_openfaas.yml` file.
 
+== Setup openfaas uppercase function
+
+We built a custom method that returns request body in uppercase. You will have to deploy it to your openfaas server to follow this tutorial.
+You can use your own function if you wish but you may have to adapt the construction of the request (the logisland conf job) accordingly.
+
+You must be on a machine with the faas-cli installed and that can reach your openfaas cluster.
+
+You need to login into your open faas cluster depending on its security settings using the command `faas-cli login` (see the documentation for more info).
+In my case I use basic auth with a username and a password :
+
+```
+echo -n $OPENFAAS_PASSWORD | faas-cli login -u $OPENFAAS_USERNAME --password-stdin
+```
+
+the uppercase file is located at `openfaas/uppercase.yml`
+
+Its content is the following :
+
+[source,yaml,subs=attributes+]
+----
+version: 1.0
+provider:
+  name: openfaas
+functions:
+  uppercase:
+    image: hurence/openfaas-uppercase:latest
+----
+
+Run this command to deploy this function to your openfaas cluster :
+
+```
+faas-cli deploy -f openfaas/uppercase.yml
+```
+
+If you get an error try specifying your gateway :
+
+```
+faas-cli deploy -f openfaas/uppercase.yml --gateway $OPENFAAS_GATEWAY_ADDRESS:$OPENFAAS_GATEWAY_PORT
+```
+
+New verify that your method is correctly deployed (if openfass is running on kubernetes):
+
+```
+kubectl get pod -n openfaas-fn
+```
+
+should give you an a pod which name contains `uppercase`. Wait until it is READY.
+
+----
+NAME                                READY   STATUS    RESTARTS   AGE
+base64-556fc5bfd5-krpkw             1/1     Running   4          7d20h
+colorise-79c948fbd6-gphs7           1/1     Running   2          47h
+colorization-64db576bd8-rtq4l       1/1     Running   1          26h
+sentimentanalysis-6f88b699d-mzjrp   1/1     Running   4          7d18h
+uppercase-5b5db46cfb-zqvlv          1/1     Running   0          25m
+wordcount-7cc5cb4996-s2q8v          1/1     Running   4          7d20h
+----
+
+Then verify you can use it by running this command :
+
+```
+echo "Hello World !" | faas-cli invoke uppercase
+```
+
+should return you
+
+```
+HELLO WORLD !
+```
+
+If it's the case your all set up with openfaas !
+
 == Logisland job setup
 
 1. We will parse some apache logs
-2. Then use those record as body to a custom openfaas method that returns request body's in uppercase (body's request is expected to be text). Retrieve this response in a field
-    Anyway as of today the rest service only support body as string.
+2. Then use those record as body to our custom openfaas method. Retrieve the response in a field.
+    As of today the rest service only support body as string, when you use input record as body it serialize the record in JSON.
 3. Extract the response from the root record to keep only response
 4. We will verify that output records in kafka are in uppercase.
 
 [NOTE]
 
-Notice that you will have to replace
-`rest.lookup.url: http://192.168.99.100:31112/function/${function_name}`
-with the endpoint of your openfaas server !
+Notice that you will have to configure the service depending on your openfass server :
+
+[source,yaml,subs=attributes+]
+----
+  - controllerService: faas_service_rest
+    component: com.hurence.logisland.rest.service.lookup.RestLookupService
+    configuration:
+        rest.lookup.url: $OPENFAAS_GATEWAY_ADDRESS:$OPENFAAS_GATEWAY_PORT/function/${function_name}
+        record.serializer: com.hurence.logisland.serializer.ExtendedJsonSerializer
+        #record.schema: ff
+        rest.lookup.basic.auth.username: $OPENFAAS_USERNAME
+        rest.lookup.basic.auth.password: $OPENFAAS_PASSWORD
+        rest.lookup.digest.auth: false
+        #eventuellement SSL config dans un second temps
+----
+
+SSL security is not supported yet.
 
 [source,yaml,subs=attributes+]
 ----
@@ -105,11 +184,11 @@ engine:
     - controllerService: faas_service_rest
       component: com.hurence.logisland.rest.service.lookup.RestLookupService
       configuration:
-        rest.lookup.url: http://192.168.99.100:31112/function/${function_name}
+        rest.lookup.url: $OPENFAAS_GATEWAY_ADDRESS:$OPENFAAS_GATEWAY_PORT/function/${function_name}
         record.serializer: com.hurence.logisland.serializer.ExtendedJsonSerializer
         #record.schema: ff
-        rest.lookup.basic.auth.username: admin
-        rest.lookup.basic.auth.password: 4f1c1b3f032b635cf1a4b1cb3d9a514412d0b7ab
+        rest.lookup.basic.auth.username: $OPENFAAS_USERNAME
+        rest.lookup.basic.auth.password: $OPENFAAS_PASSWORD
         rest.lookup.digest.auth: false
         #eventuellement SSL config dans un second temps
 
@@ -295,4 +374,4 @@ You should see the apache log events such as :
 }
 ----
 
-On constate que tous les champs sont bien en uppercase. A l'exception des champs techniques et des champs rajouté par le processor FlatMap.
+We can see here that all fields are indeed in uppercase except for technical fields and other fields added by the FlatMap processor.
