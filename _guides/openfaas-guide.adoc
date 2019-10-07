@@ -185,7 +185,7 @@ engine:
       component: com.hurence.logisland.rest.service.lookup.RestLookupService
       configuration:
         rest.lookup.url: $OPENFAAS_GATEWAY_ADDRESS:$OPENFAAS_GATEWAY_PORT/function/${function_name}
-        record.serializer: com.hurence.logisland.serializer.ExtendedJsonSerializer
+        record.serializer: com.hurence.logisland.serializer.JsonSerializer
         #record.schema: ff
         rest.lookup.basic.auth.username: $OPENFAAS_USERNAME
         rest.lookup.basic.auth.password: $OPENFAAS_PASSWORD
@@ -224,7 +224,7 @@ engine:
             function_name: uppercase
         # add field if defect found
         - processor: defect_tagger
-          component: com.hurence.logisland.rest.processor.lookup.CallRequest
+          component: com.hurence.logisland.rest.processor.lookup.AsyncCallRequest
           configuration:
             http.client.service: faas_service_rest
             strategy: overwrite_existing
@@ -241,8 +241,20 @@ engine:
             leaf.record.type: http_response
 ----
 
+The AsyncCallRequest processor will make a POST request to specified server by the defined service named 'faas_service_rest'.
+The body will be the input records (apache logs events), it will be parsed as Json using the ExtendedJsonSerializer, that is why we specified request
+mime type as json. Then the response is stored in the field 'copy_to_uppercase' of the input records as a Logisland Record as well.
+This record is built by the Service, it contains the http code received, the http message and the http body. The response body is serialized
+by the specified serializer in the service, here it is `record.serializer: com.hurence.logisland.serializer.JsonSerializer`.
 
-== Setting up Underlyning services
+As we have two nested records now. The input one contains the record of the http response which contains record of the http payload.
+That's why we use the FlatMap processor which returns child records from input records. This way we inject in kafka only http payloads.
+
+Note that if server respond with an error like code : '404', message : 'not found', this is not considered as a Logisland error so if you want to treat this
+differently you will have to chain other processors like the FilterRecords processor.
+
+
+== Setting up Underlying services
 Apache Kafka is pitched as a Distributed Streaming Platform. In Kafka lingo, Producers continuously generate data (streams) and Consumers are responsible for processing, storing and analysing it. Kafka Brokers are responsible for ensuring that in a distributed scenario the data can reach from Producers to Consumers without any inconsistency. A set of Kafka brokers and another piece of software called zookeeper constitute a typical Kafka deployment.
 
 Let’s start with a single broker instance. In the `logisland-quickstarts` directory create your `docker-compose.yml` with the following content:
