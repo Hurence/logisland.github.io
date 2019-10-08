@@ -36,7 +36,7 @@ We recommend that you follow the instructions in the next sections and create th
 However, you can go right to the completed example.
 
 * Clone the Git repository: `git clone {quickstarts-clone-url}`, or download an {quickstarts-archive-url}[archive].
-* The solution is located in the `conf/rest/uppercase_input_with_openfaas.yml` file.
+* The solution is located in the `conf/rest/uppercase_input_with_openfaas_async.yml` file.
 
 == Setup openfaas uppercase function
 
@@ -64,6 +64,9 @@ provider:
 functions:
   uppercase:
     image: hurence/openfaas-uppercase:latest
+    labels:
+      com.openfaas.scale.min: "1"
+      com.openfaas.scale.max: "25"
 ----
 
 Run this command to deploy this function to your openfaas cluster :
@@ -124,16 +127,14 @@ Notice that you will have to configure the service depending on your openfass se
 
 [source,yaml,subs=attributes+]
 ----
-  - controllerService: faas_service_rest
-    component: com.hurence.logisland.rest.service.lookup.RestLookupService
-    configuration:
+    - controllerService: faas_service_rest
+      component: com.hurence.logisland.rest.service.lookup.RestLookupService
+      configuration:
         rest.lookup.url: $OPENFAAS_GATEWAY_ADDRESS:$OPENFAAS_GATEWAY_PORT/function/${function_name}
-        record.serializer: com.hurence.logisland.serializer.ExtendedJsonSerializer
-        #record.schema: ff
+        record.deserializer.for.body: none
         rest.lookup.basic.auth.username: $OPENFAAS_USERNAME
         rest.lookup.basic.auth.password: $OPENFAAS_PASSWORD
         rest.lookup.digest.auth: false
-        #eventuellement SSL config dans un second temps
 ----
 
 SSL security is not supported yet.
@@ -228,30 +229,22 @@ engine:
           configuration:
             http.client.service: faas_service_rest
             strategy: overwrite_existing
-            field.http.response: copy_to_uppercase
+            field.http.response: http_query_uppercase
             request.method: "POST"
-            request.mime.type: "application/json"
-            input.as.body: true
-        - processor: flatten
-          component: com.hurence.logisland.processor.FlatMap
-          documentation: "extract response from root record and remove root record"
-          configuration:
-            keep.root.record: false
-            copy.root.record.fields: false
-            leaf.record.type: http_response
+            request.mime.type: "plain/text"
+            request.body: "${http_query}"
+            keep.only.response.body: true
 ----
 
 The AsyncCallRequest processor will make a POST request to specified server by the defined service named 'faas_service_rest'.
-The body will be the input records (apache logs events), it will be parsed as Json using the ExtendedJsonSerializer, that is why we specified request
-mime type as json. Then the response is stored in the field 'copy_to_uppercase' of the input records as a Logisland Record as well.
-This record is built by the Service, it contains the http code received, the http message and the http body. The response body is serialized
-by the specified serializer in the service, here it is `record.serializer: com.hurence.logisland.serializer.JsonSerializer`.
+The body will be the field http_query of the records as specified by property `request.body` which is a String, that is why we specified request
+mime type as plain text. Then the response is stored in the field `http_query_uppercase` of the input records as a String as no serializer is specified in the service 'none'.
 
-As we have two nested records now. The input one contains the record of the http response which contains record of the http payload.
-That's why we use the FlatMap processor which returns child records from input records. This way we inject in kafka only http payloads.
+Normally the response is stored as a record, the record returned by the Service. It contains the http code received, the http message and the http body. The response body is deserialized
+by the specified deserializer in the service. Bot as we specified conf `keep.only.response.body: true`, we only store the field of the body response which in our case is a String (no deserializer).
 
 Note that if server respond with an error like code : '404', message : 'not found', this is not considered as a Logisland error so if you want to treat this
-differently you will have to chain other processors like the FilterRecords processor.
+differently you will have to chain other processors like the FilterRecords processor. Otherwise you can use the property `valid.http.response` (See processor conf).
 
 
 == Setting up Underlying services
@@ -307,7 +300,7 @@ services:
     networks:
       - logisland
     environment:
-      LOGGEN_NUM: 1
+      LOGGEN_NUM: 500
       KAFKA_BROKERS: kafka:9092
 
   redis:
@@ -323,19 +316,6 @@ volumes:
 
 networks:
   logisland:
-----
-
-Be carefull here to not generate too many log if your openfaas can not follow up ! Here I run a single container for my function so I set up loggen this way :
-
-----
-[source,yml,subs=attributes+]
-  loggen:
-    image: hurence/loggen:latest
-    networks:
-      - logisland
-    environment:
-      LOGGEN_NUM: 1
-      KAFKA_BROKERS: kafka:9092
 ----
 
 Start Zookeeper, Kafka, Loggen & Logisland container with the following command `docker-compose up -d`
@@ -359,31 +339,26 @@ You should see the apache log events such as :
 [source,shell]
 ----
 {
-  "id" : "e363889d-a00c-4084-b733-e8eb6dc759ac",
-  "type" : "http_response",
-  "creationDate" : 1570028572284,
+  "id" : "ed72081d-89be-4f08-b3cf-20f0948a464c",
+  "type" : "apache_log",
+  "creationDate" : 1570519094000,
   "fields" : {
-    "RECORD_VALUE" : "123.124.125.126 - - [02/OCT/2019:15:02:38 +0200] \"GET /WP-CONTENT HTTP/1.0\" 200 5034",
-    "CREATIONDATE" : 1570021358000,
-    "IDENTD" : "-",
-    "RECORD_TIME" : 1570021358000,
-    "HTTP_STATUS" : "200",
-    "SRC_IP" : "123.124.125.126",
-    "HTTP_VERSION" : "HTTP/1.0",
-    "USER" : "-",
-    "record_type" : "http_response",
-    "BYTES_OUT" : "5034",
-    "record_id" : "e363889d-a00c-4084-b733-e8eb6dc759ac",
-    "FUNCTION_NAME" : "UPPERCASE",
-    "RECORD_TYPE" : "APACHE_LOG",
-    "RECORD_ID" : "A0CABEBA-27F7-45F4-B484-55FA8C555CE1",
-    "HTTP_QUERY" : "/WP-CONTENT",
-    "ID" : "A0CABEBA-27F7-45F4-B484-55FA8C555CE1",
-    "record_time" : 1570028572284,
-    "TYPE" : "APACHE_LOG",
-    "HTTP_METHOD" : "GET"
+    "record_value" : "123.124.125.126 - - [08/Oct/2019:09:18:14 +0200] \"POST /app/main/posts HTTP/1.0\" 301 5070",
+    "identd" : "-",
+    "http_version" : "HTTP/1.0",
+    "record_type" : "apache_log",
+    "src_ip" : "123.124.125.126",
+    "record_id" : "ed72081d-89be-4f08-b3cf-20f0948a464c",
+    "http_method" : "POST",
+    "http_query" : "/app/main/posts",
+    "bytes_out" : "5070",
+    "http_query_uppercase" : "/APP/MAIN/POSTS",
+    "function_name" : "uppercase",
+    "http_status" : "301",
+    "record_time" : 1570519094000,
+    "user" : "-"
   }
 }
 ----
 
-We can see here that all fields are indeed in uppercase except for technical fields and other fields added by the FlatMap processor.
+We can see here that field `http_query_uppercase` is indeed in uppercase.

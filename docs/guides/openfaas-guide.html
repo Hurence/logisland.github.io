@@ -127,7 +127,7 @@ However, you can go right to the completed example.</p>
 <p>Clone the Git repository: <code>git clone <a href="https://github.com/hurence/logisland-quickstarts.git" class="bare">https://github.com/hurence/logisland-quickstarts.git</a></code>, or download an <a href="https://github.com/hurence/logisland-quickstarts/archive/master.zip">archive</a>.</p>
 </li>
 <li>
-<p>The solution is located in the <code>conf/rest/uppercase_input_with_openfaas.yml</code> file.</p>
+<p>The solution is located in the <code>conf/rest/uppercase_input_with_openfaas_async.yml</code> file.</p>
 </li>
 </ul>
 </div>
@@ -165,7 +165,10 @@ provider:
   name: openfaas
 functions:
   uppercase:
-    image: hurence/openfaas-uppercase:latest</code></pre>
+    image: hurence/openfaas-uppercase:latest
+    labels:
+      com.openfaas.scale.min: "1"
+      com.openfaas.scale.max: "25"</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -261,16 +264,14 @@ Notice that you will have to configure the service depending on your openfass se
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="yaml" class="language-yaml hljs">  - controllerService: faas_service_rest
-    component: com.hurence.logisland.rest.service.lookup.RestLookupService
-    configuration:
+<pre class="highlightjs highlight"><code data-lang="yaml" class="language-yaml hljs">    - controllerService: faas_service_rest
+      component: com.hurence.logisland.rest.service.lookup.RestLookupService
+      configuration:
         rest.lookup.url: $OPENFAAS_GATEWAY_ADDRESS:$OPENFAAS_GATEWAY_PORT/function/${function_name}
-        record.serializer: com.hurence.logisland.serializer.ExtendedJsonSerializer
-        #record.schema: ff
+        record.deserializer.for.body: none
         rest.lookup.basic.auth.username: $OPENFAAS_USERNAME
         rest.lookup.basic.auth.password: $OPENFAAS_PASSWORD
-        rest.lookup.digest.auth: false
-        #eventuellement SSL config dans un second temps</code></pre>
+        rest.lookup.digest.auth: false</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -366,33 +367,25 @@ engine:
           configuration:
             http.client.service: faas_service_rest
             strategy: overwrite_existing
-            field.http.response: copy_to_uppercase
+            field.http.response: http_query_uppercase
             request.method: "POST"
-            request.mime.type: "application/json"
-            input.as.body: true
-        - processor: flatten
-          component: com.hurence.logisland.processor.FlatMap
-          documentation: "extract response from root record and remove root record"
-          configuration:
-            keep.root.record: false
-            copy.root.record.fields: false
-            leaf.record.type: http_response</code></pre>
+            request.mime.type: "plain/text"
+            request.body: "${http_query}"
+            keep.only.response.body: true</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>The AsyncCallRequest processor will make a POST request to specified server by the defined service named 'faas_service_rest'.
-The body will be the input records (apache logs events), it will be parsed as Json using the ExtendedJsonSerializer, that is why we specified request
-mime type as json. Then the response is stored in the field 'copy_to_uppercase' of the input records as a Logisland Record as well.
-This record is built by the Service, it contains the http code received, the http message and the http body. The response body is serialized
-by the specified serializer in the service, here it is <code>record.serializer: com.hurence.logisland.serializer.JsonSerializer</code>.</p>
+The body will be the field http_query of the records as specified by property <code>request.body</code> which is a String, that is why we specified request
+mime type as plain text. Then the response is stored in the field <code>http_query_uppercase</code> of the input records as a String as no serializer is specified in the service 'none'.</p>
 </div>
 <div class="paragraph">
-<p>As we have two nested records now. The input one contains the record of the http response which contains record of the http payload.
-That&#8217;s why we use the FlatMap processor which returns child records from input records. This way we inject in kafka only http payloads.</p>
+<p>Normally the response is stored as a record, the record returned by the Service. It contains the http code received, the http message and the http body. The response body is deserialized
+by the specified deserializer in the service. Bot as we specified conf <code>keep.only.response.body: true</code>, we only store the field of the body response which in our case is a String (no deserializer).</p>
 </div>
 <div class="paragraph">
 <p>Note that if server respond with an error like code : '404', message : 'not found', this is not considered as a Logisland error so if you want to treat this
-differently you will have to chain other processors like the FilterRecords processor.</p>
+differently you will have to chain other processors like the FilterRecords processor. Otherwise you can use the property <code>valid.http.response</code> (See processor conf).</p>
 </div>
 </div>
 </div>
@@ -453,7 +446,7 @@ services:
     networks:
       - logisland
     environment:
-      LOGGEN_NUM: 1
+      LOGGEN_NUM: 500
       KAFKA_BROKERS: kafka:9092
 
   redis:
@@ -469,21 +462,6 @@ volumes:
 
 networks:
   logisland:</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Be carefull here to not generate too many log if your openfaas can not follow up ! Here I run a single container for my function so I set up loggen this way :</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>[source,yml,subs=attributes+]
-  loggen:
-    image: hurence/loggen:latest
-    networks:
-      - logisland
-    environment:
-      LOGGEN_NUM: 1
-      KAFKA_BROKERS: kafka:9092</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -514,35 +492,30 @@ networks:
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code data-lang="shell" class="language-shell hljs">{
-  "id" : "e363889d-a00c-4084-b733-e8eb6dc759ac",
-  "type" : "http_response",
-  "creationDate" : 1570028572284,
+  "id" : "ed72081d-89be-4f08-b3cf-20f0948a464c",
+  "type" : "apache_log",
+  "creationDate" : 1570519094000,
   "fields" : {
-    "RECORD_VALUE" : "123.124.125.126 - - [02/OCT/2019:15:02:38 +0200] \"GET /WP-CONTENT HTTP/1.0\" 200 5034",
-    "CREATIONDATE" : 1570021358000,
-    "IDENTD" : "-",
-    "RECORD_TIME" : 1570021358000,
-    "HTTP_STATUS" : "200",
-    "SRC_IP" : "123.124.125.126",
-    "HTTP_VERSION" : "HTTP/1.0",
-    "USER" : "-",
-    "record_type" : "http_response",
-    "BYTES_OUT" : "5034",
-    "record_id" : "e363889d-a00c-4084-b733-e8eb6dc759ac",
-    "FUNCTION_NAME" : "UPPERCASE",
-    "RECORD_TYPE" : "APACHE_LOG",
-    "RECORD_ID" : "A0CABEBA-27F7-45F4-B484-55FA8C555CE1",
-    "HTTP_QUERY" : "/WP-CONTENT",
-    "ID" : "A0CABEBA-27F7-45F4-B484-55FA8C555CE1",
-    "record_time" : 1570028572284,
-    "TYPE" : "APACHE_LOG",
-    "HTTP_METHOD" : "GET"
+    "record_value" : "123.124.125.126 - - [08/Oct/2019:09:18:14 +0200] \"POST /app/main/posts HTTP/1.0\" 301 5070",
+    "identd" : "-",
+    "http_version" : "HTTP/1.0",
+    "record_type" : "apache_log",
+    "src_ip" : "123.124.125.126",
+    "record_id" : "ed72081d-89be-4f08-b3cf-20f0948a464c",
+    "http_method" : "POST",
+    "http_query" : "/app/main/posts",
+    "bytes_out" : "5070",
+    "http_query_uppercase" : "/APP/MAIN/POSTS",
+    "function_name" : "uppercase",
+    "http_status" : "301",
+    "record_time" : 1570519094000,
+    "user" : "-"
   }
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>We can see here that all fields are indeed in uppercase except for technical fields and other fields added by the FlatMap processor.</p>
+<p>We can see here that field <code>http_query_uppercase</code> is indeed in uppercase.</p>
 </div>
 </div>
 </div>
