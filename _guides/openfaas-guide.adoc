@@ -1,0 +1,364 @@
+include::./attributes.adoc[]
+= {project-name} - Calling openfaas methods
+
+:toc: macro
+:toclevels: 4
+:doctype: book
+:icons: font
+:docinfo1:
+
+:numbered:
+:sectnums:
+:sectnumlevels: 4
+
+
+Learn how to communicate with an openfaas server to execute some custom code of your company.
+
+This guide covers:
+
+* rest service
+* executing request against a faas server and retrieving the response
+
+== Prerequisites
+
+To complete this guide, you need:
+
+* less than 15 minutes
+* an IDE
+* JDK 1.8+ installed with `JAVA_HOME` configured appropriately
+* Apache Maven 3.5.3+
+* a running openfaas server available from your machine. (See openfaas documentation to install one, for exemple https://docs.openfaas.com/deployment/kubernetes/)
+* to be familiar with logisland (please refer to other guides first otherwise)
+
+== Solution
+
+We recommend that you follow the instructions in the next sections and create the application step by step.
+However, you can go right to the completed example.
+
+* Clone the Git repository: `git clone {quickstarts-clone-url}`, or download an {quickstarts-archive-url}[archive].
+* The solution is located in the `conf/rest/uppercase_input_with_openfaas_async.yml` file.
+
+== Setup openfaas uppercase function
+
+We built a custom method that returns request body in uppercase. You will have to deploy it to your openfaas server to follow this tutorial.
+You can use your own function if you wish but you may have to adapt the construction of the request (the logisland conf job) accordingly.
+
+You must be on a machine with the faas-cli installed and that can reach your openfaas cluster.
+
+You need to login into your open faas cluster depending on its security settings using the command `faas-cli login` (see the documentation for more info).
+In my case I use basic auth with a username and a password :
+
+```
+echo -n $OPENFAAS_PASSWORD | faas-cli login -u $OPENFAAS_USERNAME --password-stdin
+```
+
+the uppercase file is located at `openfaas/uppercase.yml`
+
+Its content is the following :
+
+[source,yaml,subs=attributes+]
+----
+version: 1.0
+provider:
+  name: openfaas
+functions:
+  uppercase:
+    image: hurence/openfaas-uppercase:latest
+    labels:
+      com.openfaas.scale.min: "1"
+      com.openfaas.scale.max: "25"
+----
+
+Run this command to deploy this function to your openfaas cluster :
+
+```
+faas-cli deploy -f openfaas/uppercase.yml
+```
+
+If you get an error try specifying your gateway :
+
+```
+faas-cli deploy -f openfaas/uppercase.yml --gateway $OPENFAAS_GATEWAY_ADDRESS:$OPENFAAS_GATEWAY_PORT
+```
+
+New verify that your method is correctly deployed (if openfass is running on kubernetes):
+
+```
+kubectl get pod -n openfaas-fn
+```
+
+should give you an a pod which name contains `uppercase`. Wait until it is READY.
+
+----
+NAME                                READY   STATUS    RESTARTS   AGE
+base64-556fc5bfd5-krpkw             1/1     Running   4          7d20h
+colorise-79c948fbd6-gphs7           1/1     Running   2          47h
+colorization-64db576bd8-rtq4l       1/1     Running   1          26h
+sentimentanalysis-6f88b699d-mzjrp   1/1     Running   4          7d18h
+uppercase-5b5db46cfb-zqvlv          1/1     Running   0          25m
+wordcount-7cc5cb4996-s2q8v          1/1     Running   4          7d20h
+----
+
+Then verify you can use it by running this command :
+
+```
+echo "Hello World !" | faas-cli invoke uppercase
+```
+
+should return you
+
+```
+HELLO WORLD !
+```
+
+If it's the case your all set up with openfaas !
+
+== Logisland job setup
+
+1. We will parse some apache logs
+2. Then use those record as body to our custom openfaas method. Retrieve the response in a field.
+    As of today the rest service only support body as string, when you use input record as body it serialize the record in JSON.
+3. Extract the response from the root record to keep only response
+4. We will verify that output records in kafka are in uppercase.
+
+[NOTE]
+
+Notice that you will have to configure the service depending on your openfass server :
+
+[source,yaml,subs=attributes+]
+----
+    - controllerService: faas_service_rest
+      component: com.hurence.logisland.rest.service.lookup.RestLookupService
+      configuration:
+        rest.lookup.url: $OPENFAAS_GATEWAY_ADDRESS:$OPENFAAS_GATEWAY_PORT/function/${function_name}
+        record.deserializer.for.body: none
+        rest.lookup.basic.auth.username: $OPENFAAS_USERNAME
+        rest.lookup.basic.auth.password: $OPENFAAS_PASSWORD
+        rest.lookup.digest.auth: false
+----
+
+SSL security is not supported yet.
+
+[source,yaml,subs=attributes+]
+----
+#########################################################################################################
+# Logisland configuration script template
+#########################################################################################################
+
+version: 1.2.0
+documentation: LogIsland main config file. Put here every engine or component config
+
+#########################################################################################################
+# engine
+engine:
+  component: com.hurence.logisland.engine.spark.KafkaStreamProcessingEngine
+  type: engine
+  documentation: A logisland stream that convert all string to uppercase using an openfaas method
+  configuration:
+    spark.app.name: OpenFaasDemo
+    spark.master: local[4]
+    spark.driver.memory: 1g
+    spark.driver.cores: 1
+    spark.executor.memory: 2g
+    spark.executor.instances: 4
+    spark.executor.cores: 2
+    spark.yarn.queue: default
+    spark.yarn.maxAppAttempts: 4
+    spark.yarn.am.attemptFailuresValidityInterval: 1h
+    spark.yarn.max.executor.failures: 20
+    spark.yarn.executor.failuresValidityInterval: 1h
+    spark.task.maxFailures: 8
+    spark.serializer: org.apache.spark.serializer.KryoSerializer
+    spark.streaming.batchDuration: 10000
+    spark.streaming.backpressure.enabled: false
+    spark.streaming.unpersist: false
+    spark.streaming.blockInterval: 500
+    spark.streaming.kafka.maxRatePerPartition: 3000
+    spark.streaming.timeout: -1
+    spark.streaming.kafka.maxRetries: 3
+    spark.streaming.ui.retainedBatches: 200
+    spark.streaming.receiver.writeAheadLog.enable: false
+    spark.ui.port: 4053
+
+  controllerServiceConfigurations:
+
+    - controllerService: faas_service_rest
+      component: com.hurence.logisland.rest.service.lookup.RestLookupService
+      configuration:
+        rest.lookup.url: $OPENFAAS_GATEWAY_ADDRESS:$OPENFAAS_GATEWAY_PORT/function/${function_name}
+        record.serializer: com.hurence.logisland.serializer.JsonSerializer
+        #record.schema: ff
+        rest.lookup.basic.auth.username: $OPENFAAS_USERNAME
+        rest.lookup.basic.auth.password: $OPENFAAS_PASSWORD
+        rest.lookup.digest.auth: false
+        #eventuellement SSL config dans un second temps
+
+  streamConfigurations:
+
+    - stream: parsing_stream
+      component: com.hurence.logisland.stream.spark.KafkaRecordStreamParallelProcessing
+      configuration:
+        kafka.input.topics: logisland_raw
+        kafka.output.topics: logisland_events
+        kafka.error.topics: logisland_errors
+        kafka.input.topics.serializer: none
+        kafka.output.topics.serializer: com.hurence.logisland.serializer.JsonSerializer
+        kafka.error.topics.serializer: com.hurence.logisland.serializer.JsonSerializer
+        kafka.metadata.broker.list: kafka:9092
+        kafka.zookeeper.quorum: zookeeper:2181
+        kafka.topic.autoCreate: true
+        kafka.topic.default.partitions: 4
+        kafka.topic.default.replicationFactor: 1
+      processorConfigurations:
+
+        # a parser that produce events from an apache log REGEX
+        - processor: apache_parser
+          component: com.hurence.logisland.processor.SplitText
+          configuration:
+            record.type: apache_log
+            value.regex: (\S+)\s+(\S+)\s+(\S+)\s+\[([\w:\/]+\s[+\-]\d{4})\]\s+"(\S+)\s+(\S+)\s*(\S*)"\s+(\S+)\s+(\S+)
+            value.fields: src_ip,identd,user,record_time,http_method,http_query,http_version,http_status,bytes_out
+        # add field for openfaas method to use
+        - processor: add_function_name
+          component: com.hurence.logisland.processor.AddFields
+          configuration:
+            function_name: uppercase
+        # add field if defect found
+        - processor: defect_tagger
+          component: com.hurence.logisland.rest.processor.lookup.AsyncCallRequest
+          configuration:
+            http.client.service: faas_service_rest
+            strategy: overwrite_existing
+            field.http.response: http_query_uppercase
+            request.method: "POST"
+            request.mime.type: "plain/text"
+            request.body: "${http_query}"
+            keep.only.response.body: true
+----
+
+The AsyncCallRequest processor will make a POST request to specified server by the defined service named 'faas_service_rest'.
+The body will be the field http_query of the records as specified by property `request.body` which is a String, that is why we specified request
+mime type as plain text. Then the response is stored in the field `http_query_uppercase` of the input records as a String as no serializer is specified in the service 'none'.
+
+Normally the response is stored as a record, the record returned by the Service. It contains the http code received, the http message and the http body. The response body is deserialized
+by the specified deserializer in the service. Bot as we specified conf `keep.only.response.body: true`, we only store the field of the body response which in our case is a String (no deserializer).
+
+Note that if server respond with an error like code : '404', message : 'not found', this is not considered as a Logisland error so if you want to treat this
+differently you will have to chain other processors like the FilterRecords processor. Otherwise you can use the property `valid.http.response` (See processor conf).
+
+
+== Setting up Underlying services
+Apache Kafka is pitched as a Distributed Streaming Platform. In Kafka lingo, Producers continuously generate data (streams) and Consumers are responsible for processing, storing and analysing it. Kafka Brokers are responsible for ensuring that in a distributed scenario the data can reach from Producers to Consumers without any inconsistency. A set of Kafka brokers and another piece of software called zookeeper constitute a typical Kafka deployment.
+
+Let’s start with a single broker instance. In the `logisland-quickstarts` directory create your `docker-compose.yml` with the following content:
+
+[source,yml,subs=attributes+]
+----
+version: '3'
+services:
+  zookeeper:
+    image: wurstmeister/zookeeper
+    ports:
+      - "2181:2181"
+    networks:
+      - logisland
+
+  kafka:
+    image: wurstmeister/kafka:0.10.2.1
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_ADVERTISED_HOST_NAME: kafka
+      KAFKA_CREATE_TOPICS: "test:1:1"
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./data:/tmp/data
+    networks:
+      - logisland
+
+  logisland:
+    image: hurence/logisland:latest
+    entrypoint:
+      - "tail"
+      - "-f"
+      - "bin/logisland.sh"
+    ports:
+      - '4050:4050'
+    volumes:
+      - ./conf:/opt/logisland/conf
+    environment:
+      KAFKA_HOME: /opt/kafka_2.11-0.10.2.2
+      KAFKA_BROKERS: kafka:9092
+      ZK_QUORUM: zookeeper:2181
+      REDIS_CONNECTION: redis:6379
+    networks:
+      - logisland
+
+  loggen:
+    image: hurence/loggen:latest
+    networks:
+      - logisland
+    environment:
+      LOGGEN_NUM: 500
+      KAFKA_BROKERS: kafka:9092
+
+  redis:
+    hostname: redis
+    image: 'redis:latest'
+    ports:
+      - '6379:6379'
+    networks:
+      - logisland
+
+volumes:
+  kafka-home:
+
+networks:
+  logisland:
+----
+
+Start Zookeeper, Kafka, Loggen & Logisland container with the following command `docker-compose up -d`
+
+== Launch the script
+
+Connect a shell to your logisland container to launch the following streaming jobs.
+
+`docker exec -i -t logisland-quickstarts_logisland_1 bin/logisland.sh --conf conf/rest/uppercase_input_with_openfaas.yml`
+
+
+=== See what we have in return
+
+Logisland handles the parsing of the log lines and structure them as Records before sending them to `logisland_events`. Those will be sent in another Kafka topic.
+
+`docker exec -ti logisland-quickstarts_kafka_1 /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server kafka:9092 --topic logisland_events`
+
+
+You should see the apache log events such as :
+
+[source,shell]
+----
+{
+  "id" : "ed72081d-89be-4f08-b3cf-20f0948a464c",
+  "type" : "apache_log",
+  "creationDate" : 1570519094000,
+  "fields" : {
+    "record_value" : "123.124.125.126 - - [08/Oct/2019:09:18:14 +0200] \"POST /app/main/posts HTTP/1.0\" 301 5070",
+    "identd" : "-",
+    "http_version" : "HTTP/1.0",
+    "record_type" : "apache_log",
+    "src_ip" : "123.124.125.126",
+    "record_id" : "ed72081d-89be-4f08-b3cf-20f0948a464c",
+    "http_method" : "POST",
+    "http_query" : "/app/main/posts",
+    "bytes_out" : "5070",
+    "http_query_uppercase" : "/APP/MAIN/POSTS",
+    "function_name" : "uppercase",
+    "http_status" : "301",
+    "record_time" : 1570519094000,
+    "user" : "-"
+  }
+}
+----
+
+We can see here that field `http_query_uppercase` is indeed in uppercase.

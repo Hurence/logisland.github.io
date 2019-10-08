@@ -1,9 +1,3 @@
-////
-This guide is maintained in the main Logisland repository
-and pull requests should be submitted there:
-https://github.com/hurence/logisland/tree/master/docs/src/main/asciidoc
-////
-
 include::./attributes.adoc[]
 = {project-name} - Creating Your First Application
 
@@ -34,6 +28,11 @@ To complete this guide, you need:
 * a simple text editor
 * docker & docker-compose installed and running
 
+[NOTE]
+
+If you does not have rights to execute docker with your current user you may need to add `sudo` to all docker commands.
+You can look to the docker documentation to configure docker to works without sudo.
+
 
 == Architecture
 
@@ -52,6 +51,9 @@ Clone the Git repository: `git clone {quickstarts-clone-url}`, or download an {q
 
 The solution is located in the `conf/core/parse-apache-logs.yml` file.
 
+If you decide to create the application yourself step by step please create a folder that we will call `logisland-quickstarts`
+in this guide and go inside.
+
 
 == Boostraping Logisland
 
@@ -59,7 +61,7 @@ Our app is pretty straightforward, it reads some raw apache log lines from a kaf
 
 === Configure the streaming app
 
-The easiest way to create a new {project-name} project is to open a text editor in the `conf/core` folder and to edit a config file.
+The easiest way to create a new {project-name} is to open a text editor in the `./conf/core` folder and to edit a config file.
 Edit the following content of `conf/core/parse-apache-logs.yml` in any text editor if you want to make some adjustments.
 
 [source,yml,subs=attributes+]
@@ -105,7 +107,9 @@ engine:
 ----
 
 An Engine is needed to handle the stream processing. This configuration file defines a stream processing job setup.
-The first section configures the Spark engine (we will use a `KafkaStreamProcessingEngine <../plugins.html#kafkastreamprocessingengine>`_) to run in local mode with 2 cpu cores and 2G of RAM.
+The first section configures the Spark engine (we will use a
+https://logisland.readthedocs.io/en/latest/user/components/engines/engine-spark.html#kafkastreamprocessingengine[KafkaStreamProcessingEngine])
+to run in local mode with 2 cpu cores and 2G of RAM.
 
 Inside this engine you will run a Kafka stream of processing, so we setup input/output topics and Kafka/Zookeeper hosts.
 Here the stream will read all the logs sent in `logisland_raw` topic and push the processing output into `logisland_events` topic.
@@ -115,7 +119,7 @@ We can define some serializers to marshall all records from and to a topic.
 == Setting up Underlyning services
 Apache Kafka is pitched as a Distributed Streaming Platform. In Kafka lingo, Producers continuously generate data (streams) and Consumers are responsible for processing, storing and analysing it. Kafka Brokers are responsible for ensuring that in a distributed scenario the data can reach from Producers to Consumers without any inconsistency. A set of Kafka brokers and another piece of software called zookeeper constitute a typical Kafka deployment.
 
-Let’s start with a single broker instance. In the `core` directory create your `docker-compose.yml` with the following content:
+Let’s start with a single broker instance. In the `logisland-quickstarts` directory create your `docker-compose.yml` with the following content:
 
 [source,yml,subs=attributes+]
 ----
@@ -187,9 +191,66 @@ Start Zookeeper, Kafka, Loggen & Logisland container with the following command 
 
 == Launch Logisland Application
 
+If you chose to go from scratch you can create a `log4j.properties` file in the `./conf` folder so that the logisland job does not floods with logs.
+In this case create this file with the following content :
+
+[source,properties,subs=attributes+]
+----
+# Root logger option
+log4j.rootLogger=INFO,stdout,rolling
+
+
+# Direct log messages to a log file
+log4j.appender.rolling=org.apache.log4j.RollingFileAppender
+log4j.appender.rolling.DatePattern='.'yyyy-MM-dd
+log4j.appender.rolling.layout=org.apache.log4j.PatternLayout
+log4j.appender.rolling.layout.conversionPattern=[%d] %p %m (%c)%n
+log4j.appender.rolling.maxFileSize=50MB
+log4j.appender.rolling.maxBackupIndex=5
+log4j.appender.rolling.ImmediateFlush=true
+log4j.appender.rolling.encoding=UTF-8
+
+# Direct log messages to stdout
+log4j.appender.stdout=org.apache.log4j.ConsoleAppender
+log4j.appender.stdout.Target=System.out
+log4j.appender.stdout.layout=org.apache.log4j.PatternLayout
+log4j.appender.stdout.layout.ConversionPattern=%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n
+
+log4j.logger.org.apache.zookeeper=ERROR, stdout
+log4j.logger.org.I0Itec.zkclient=ERROR, stdout
+log4j.additivity.kafka.server=false
+log4j.additivity.kafka.consumer.ZookeeperConsumerConnector=false
+
+
+# Log levels
+log4j.logger.org.apache.spark=WARN
+log4j.logger.org.apache.spark.scheduler=WARN
+log4j.logger.org.apache.spark.history=WARN
+log4j.logger.org.apache.spark.streaming=WARN
+log4j.logger.org.spark-project.jetty=WARN
+log4j.logger.org.eclipse.jetty.server=OFF
+log4j.logger.org.apache.spark.deploy.yarn=DEBUG
+log4j.logger.io.netty=WARN
+log4j.logger.org.apache.hadoop.ipc.Client=WARN
+log4j.logger.org.apache.hadoop=WARN
+log4j.logger.org.apache.hadoop.ipc.ProtobufRpcEngine=WARN
+log4j.logger.parquet.hadoop=WARN
+log4j.logger.org.apache.kafka=ERROR
+log4j.logger.kafka=WARN
+log4j.logger.org.elasticsearch=WARN
+
+log4j.logger.com.hurence=DEBUG
+log4j.logger.org.jinterop=WARN
+----
+
 Now you can run the job inside the logisland container
 
-`sudo docker exec -ti logisland-quickstarts_logisland_1 ./bin/logisland.sh --conf conf/core/parse-apache-logs.yml`
+`docker exec -ti logisland-quickstarts_logisland_1 ./bin/logisland.sh --conf conf/core/parse-apache-logs.yml`
+
+[NOTE]
+
+If the parent folder of your docker-compose.yml is not logisland-quickstarts, the name of your container will be different.
+You can check this with docker ps (check docker documentation for more info).
 
 This will launch a Logisland Stream application waiting for data in a Kafka topic that will be automatically created. 
 
@@ -213,7 +274,7 @@ log4j:ERROR No output stream or file set for the appender named [rolling].
 ██║     ██║   ██║██║  ███╗  ██║███████╗██║     ███████║██╔██╗ ██║██║  ██║
 ██║     ██║   ██║██║   ██║  ██║╚════██║██║     ██╔══██║██║╚██╗██║██║  ██║
 ███████╗╚██████╔╝╚██████╔╝  ██║███████║███████╗██║  ██║██║ ╚████║██████╔╝
-╚══════╝ ╚═════╝  ╚═════╝   ╚═╝╚══════╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═══╝╚═════╝   v1.1.2
+╚══════╝ ╚═════╝  ╚═════╝   ╚═╝╚══════╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═══╝╚═════╝   v1.2.0
 2019-03-19 16:08:47 INFO  StreamProcessingRunner:95 - awaitTermination for engine 1
 2019-03-19 16:08:47 WARN  SparkContext:66 - Using an existing SparkContext; some configuration may not take effect.
 ----
@@ -229,11 +290,11 @@ Logs are beeing sent to `logisland_raw` Kafka topic to simulate a log collection
 
 [Tip]
   You could send the first 4000 lines of NASA http access over July 1995 to LogIsland with kafka scripts (available in our logisland container) to `logisland_raw` Kafka topic with the following command :
-  `sudo docker exec -ti logisland-quickstarts_kafka_1 sh -c "cat /tmp/data/access.log | /opt/kafka/bin/kafka-console-producer.sh --broker-list kafka:9092 --topic logisland_raw"`
+  `docker exec -ti logisland-quickstarts_kafka_1 sh -c "cat /tmp/data/access.log | /opt/kafka/bin/kafka-console-producer.sh --broker-list kafka:9092 --topic logisland_raw"`
 
 If you want to see what is flowing into `logisland_raw` topic, just run the following :
 
-`sudo docker exec -ti logisland-quickstarts_kafka_1 /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server kafka:9092 --topic logisland_raw`
+`docker exec -ti logisland-quickstarts_kafka_1 /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server kafka:9092 --topic logisland_raw`
 
 It should something like 
 
@@ -250,7 +311,7 @@ It should something like
 
 Logisland handles the parsing of the log lines and structure them as Records before sending them to `logisland_events`. Those will be sent in another Kafka topic.
 
-`sudo docker exec -ti logisland-quickstarts_kafka_1 /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server kafka:9092 --topic logisland_events`
+`docker exec -ti logisland-quickstarts_kafka_1 /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server kafka:9092 --topic logisland_events`
 
 
 You should see the apache log events such as : 
