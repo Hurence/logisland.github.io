@@ -190,7 +190,7 @@ If you want to see what is flowing into `logisland_raw` topic, just run the foll
 `sudo docker exec -ti logisland-quickstarts_kafka_1 /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server kafka:9092 --topic logisland_raw`
 
 
-you should see some random metrics
+you should see some random metrics :
 
 
 [source,csv]
