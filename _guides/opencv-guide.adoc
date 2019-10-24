@@ -1,0 +1,209 @@
+////
+This guide is maintained in the main Logisland repository
+and pull requests should be submitted there:
+https://github.com/hurence/logisland/tree/master/docs/src/main/asciidoc
+////
+
+include::./attributes.adoc[]
+= Highlighting Objects in a Picture with OpenCV
+
+:toc: right
+:toclevels: 4
+:doctype: book
+:icons: font
+:docinfo1:
+
+:numbered:
+:sectnums:
+:sectnumlevels: 4
+
+Learn how to highlighting Objects in a Picture with OpenCV through {project-name} `Records`.
+
+This guide covers:
+
+* OpenCV API
+* object highlighting
+
+== Prerequisites
+
+To complete this guide, you need:
+
+* less than 15 minutes
+* an IDE
+* JDK 1.8+ installed with `JAVA_HOME` configured appropriately
+* to be familiar with logisland (please refer to other guides first otherwise)
+
+== Solution
+
+Clone the Git repository: `git clone {quickstarts-clone-url}`, or download an {quickstarts-archive-url}[archive].
+
+The logisland job is located in the `conf/computer-vision/opencv.yml` file.
+
+
+== Environment setup
+
+Start all the the services with the following command `sudo docker-compose -f docker-compose.yml -d`
+
+
+== Setup Logisland Job
+
+Run directly the solution wioth the following command within the {quickstarts-clone-url} root folder.
+
+`sudo docker exec -ti logisland-quickstarts_logisland_1 ./bin/logisland.sh --conf conf/computer-vision/opencv.yml`
+
+== the timeseries app
+here is the logisland job for timeseries parsing, chunking and indexing
+
+[source,yml]
+----
+version: 1.2.0
+documentation: LogIsland computer vision sample
+
+engine:
+  component: com.hurence.logisland.engine.spark.KafkaStreamProcessingEngine
+  configuration:
+    spark.app.name: OpenCV
+    spark.master: local[2]
+    spark.streaming.batchDuration: 200
+    spark.streaming.kafka.maxRatePerPartition: 10000
+    spark.streaming.timeout: -1
+  
+  controllerServiceConfigurations:
+
+    - controllerService: kafka_service
+      component: com.hurence.logisland.stream.spark.structured.provider.KafkaStructuredStreamProviderService
+      configuration:
+        kafka.input.topics: logisland_raw
+        kafka.output.topics: logisland_images
+        kafka.error.topics: logisland_errors
+        kafka.input.topics.serializer: none
+        kafka.output.topics.serializer: none
+        kafka.error.topics.serializer: com.hurence.logisland.serializer.JsonSerializer
+        kafka.metadata.broker.list: kafka:9092
+        kafka.zookeeper.quorum: zookeeper:2181
+        kafka.topic.autoCreate: true
+        kafka.topic.default.partitions: 2
+        kafka.topic.default.replicationFactor: 1
+
+  streamConfigurations:
+
+    - stream: parsing_stream
+      component: com.hurence.logisland.stream.spark.structured.StructuredStream
+      configuration:
+        read.topics.serializer: com.hurence.logisland.serializer.BytesArraySerializer
+        read.stream.service.provider: kafka_service
+        write.topics.serializer: com.hurence.logisland.serializer.BytesArraySerializer
+        write.stream.service.provider: kafka_service
+      processorConfigurations:
+
+        - processor: contour_extraction
+          component: com.hurence.logisland.cv.processor.RunScript
+          configuration:
+            input.field: record_value
+            output.field: record_value
+            output.mode: overwrite
+            image.format: png
+            script.ns: com.hurence.logisland
+            script.function: ld_detect_edges
+            script.code: >
+              (ns com.hurence.logisland
+                (:refer-clojure :exclude [sort min merge reduce max compare repeat])
+                (:require [opencv4.utils :refer :all])
+                (:require [opencv4.core :refer :all])
+                (:import [com.hurence.logisland.record Record]))
+
+              (defn ld_detect_edges [mat]
+                (-> mat
+                    (resize-by 0.5)
+                    (cvt-color! COLOR_RGB2GRAY)
+                    (canny! 300.0 100.0 3 true)
+                    (bitwise-not!)))
+----
+
+== some data to process
+
+The loggen container send some raw values into logisland_raw topic
+
+If you want to see what is flowing into `logisland_raw` topic, just run the following :
+
+`sudo docker exec -ti logisland-quickstarts_kafka_1 /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server kafka:9092 --topic logisland_raw`
+
+
+== get the output from kafka to a file
+
+TODO : add a python script to save those iamges from kafka to files 
+
+
+== Problem
+You have a picture with a set of objects, animals, or shapes that you would like to highlight, maybe because you want to count them.
+
+== Solution
+OpenCV offers a famous function named Canny, which can highlight lines in a picture. You will see how to use canny in more detail later in this chapter; for now, let’s focus on the basic steps using Java.
+
+OpenCV’s canny works on gray mat for contour detection. While you can leave it to canny to do it for you, let’s explicitly change the color space of the input mat to be in grayspace.
+
+Changing color space is easily done with OpenCV using the cvtColor function found in the Core class.
+
+== How it works
+
+Suppose you have a picture as a byte array in record's field :
+
+We start by loading the picture into a Mat as usual:
+
+to resize the picture right after loading 
+
+    (resize-by 0.5)
+
+We then convert the color of that tools mat using the cvtColor function, which takes a source mat, a target mat, and a target color space. Color space constants are found in the Imgproc class and have a prefix like COLOR_.
+
+So to turn the mat to black and white, you can use the COLOR_ RGB2GRAY constant.
+
+    (cvt-color! COLOR_RGB2GRAY)
+
+The black-and-white picture is ready to be sent to canny. Parameters for the canny function are as follows:
+
+- Source mat
+- Target mat
+- Low threshold: we will use 150.0
+
+High threshold: usually approximately low threshold*2 or low threshold*3
+Aperture: an odd value between 3 and 7; we will use 3. The higher the aperture, the more contours will be found.
+
+L2Gradient value, for now set to true
+
+Canny computes a gradient value for each pixel, using a convolution matrix with the center pixels and neighboring pixels. If the gradient value is higher than the high threshold, then it is kept as an edge. If it’s in between, it is kept if it has a high gradient connected to it.
+
+Now, we can call the Canny function.
+
+    (canny! 150.0 300.0 3 true)
+
+For the eyes, the printer, and the trees, it may be sometimes easier to draw the inverted Mat where white is turned to black, and black is turned to white. This is done using the bitwise_not function from the Core class.
+
+    (bitwise-not!)))
+
+
+[source,clojure]
+----
+(ns com.hurence.logisland
+  (:refer-clojure :exclude
+                  [sort min merge reduce max compare repeat])
+  (:require [opencv4.utils :refer :all])
+  (:require [opencv4.core :refer :all])
+
+(defn ld_detect_edges [mat]
+  (-> mat
+      (resize-by 0.5)
+      (cvt-color! COLOR_RGB2GRAY)
+      (canny! 150.0 300.0 3 true)
+      (bitwise-not!)))
+----
+
+
+
+
+== Cleanup
+
+to remove all containers run the following
+
+`docker-compose -f docker-compose.yml down` 
+

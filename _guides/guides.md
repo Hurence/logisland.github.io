@@ -43,6 +43,11 @@ permalink: /guides/
 
 - [Time Series analytics]({{site.baseurl}}/guides/timeseries-guide)
 
+
+### Computer Vision
+
+- [OpenCV basics]({{site.baseurl}}/guides/opencv-guide)
+
 ### Web analytics
 
 - [User sessions]({{site.baseurl}}/guides/web-sessionization-guide)
