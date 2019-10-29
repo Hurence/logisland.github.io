@@ -42,7 +42,7 @@ The logisland job is located in the `conf/computer-vision/opencv.yml` file.
 
 == Environment setup
 
-Start all the the services with the following command `sudo docker-compose -f docker-compose.yml -d`
+Start all the the services with the following command `sudo docker-compose -f docker-compose.yml -f docker-compose.opencv.yml -d`
 
 
 == Setup Logisland Job
@@ -205,5 +205,5 @@ For the eyes, the printer, and the trees, it may be sometimes easier to draw the
 
 to remove all containers run the following
 
-`docker-compose -f docker-compose.yml down` 
+`sudo docker-compose -f docker-compose.yml -f docker-compose.opencv.yml down` 
 
