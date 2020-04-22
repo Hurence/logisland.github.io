@@ -112,7 +112,7 @@ Here the stream will read all the logs sent in `logisland_raw` topic and push th
 
 We can define some serializers to marshall all records from and to a topic.
 
-== Setting up Underlyning services
+== Setting up Underlying services
 Apache Kafka is pitched as a Distributed Streaming Platform. In Kafka lingo, Producers continuously generate data (streams) and Consumers are responsible for processing, storing and analysing it. Kafka Brokers are responsible for ensuring that in a distributed scenario the data can reach from Producers to Consumers without any inconsistency. A set of Kafka brokers and another piece of software called zookeeper constitute a typical Kafka deployment.
 
 Let’s start with a single broker instance. In the `core` directory create your `docker-compose.yml` with the following content:
