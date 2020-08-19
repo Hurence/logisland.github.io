@@ -1,0 +1,109 @@
+include::./attributes.adoc[]
+= Logisland on Spark Cluster
+
+:toc: right
+:toclevels: 4
+:doctype: book
+:icons: font
+:docinfo1:
+
+:numbered:
+:sectnums:
+:sectnumlevels: 4
+
+
+
+Learn how to use {project-name} on a spark cluster standalone.
+
+This guide covers:
+
+* How to install logisland on a spark cluster standalone
+* How to run logisland job on a spark cluster standalone
+
+== Prerequisites
+
+To complete this guide, you need:
+
+* less than 30 minutes
+* to be familiar with logisland (please refer to other guides first otherwise)
+* to have an installed spark cluster with standalone manager (see spark documentation)
+
+== Installation of Logisland
+
+Choose the release of logisland you want to install. A logisland installation contains jars.
+To use it on a spark cluster standalone you will have to make accessible the engines jars to all
+spark worker nodes and to the spark master node.
+
+It should be located in $LOGISLAND_HOME/lib/engines/.
+You can not change the jar path ! It should be the same in every node and the same that the logisland installation you are using.
+Make sure as well it is readable by the spark user.
+
+== Run logisland jobs
+
+=== Client mode
+
+In spark client mode, you only need to have logisland installed on the node you submit your job. Indeed
+runtime dependencies on worker will be automatically uploaded to them.
+
+So to un spark client job on a spark cluster standalone is pretty straightforward !
+
+=== Cluster mode
+
+In cluster mode, the driver will be potentially run on another machine than the local machine. So your job conf file
+will have to be accessible from this machine ! That is why, like the engines jars, you should be sure that your job conf file
+is available in all spark nodes of your cluster (with read acces for spark user).
+
+=== available options in engine conf
+
+In spark cluster standalone, you have thos options available in your logisland job conf :
+
+[%header,format=csv]
+|===
+Property, Required, Description, accepted value or exemple
+spark.app.name, No, Name of the spark job to use, String
+spark.master, Yes, Spark master URI (see spark doc), start with "spark://"
+spark.deploy-mode, Yes, Deploy mode to use, "client" or "cluster"
+spark.total.executor.cores, No, add specified --total-executor-cores X to spark-submit (see spark doc), a number
+spark.executor.memory, No, add specified --executor-memory X to spark-submit (see spark doc), 10G
+spark.supervise, No, add --supervise to spark-submit (see spark doc), true
+|===
+
+
+==== Exemple of configuration of the engine in a job conf for a spark cluster
+
+here is an exemple of logisland job conf with specific spark cluster standalone conf in engine conf.
+
+[source,yml]
+----
+#########################################################################################################
+# Logisland configuration script template
+#########################################################################################################
+version: 1.4.0
+documentation: LogIsland analytics main config file. Put here every engine or component config
+#########################################################################################################
+engine:
+  component: com.hurence.logisland.engine.spark.KafkaStreamProcessingEngine
+  type: engine
+  documentation: An example of engine configuration using spark cluster standalone manager
+  configuration:
+    # Spark cluster standalone conf part
+    spark.app.name: test_logisland_spark_standalone
+    spark.master: spark://azvmescwap3.escardio.net:7077
+    spark.deploy-mode: cluster
+    spark.total.executor.cores: 2
+    spark.executor.memory: 2G
+    spark.supervise: true
+    # Other conf for kafka streaming
+    spark.serializer: org.apache.spark.serializer.KryoSerializer
+    spark.ui.port: 4054
+    spark.monitoring.driver.port: 7091
+    spark.streaming.backpressure.enabled: true
+    spark.streaming.unpersist: false
+    spark.streaming.blockInterval: 500
+    spark.streaming.timeout: -1
+    spark.streaming.kafka.maxRetries: 3
+    spark.streaming.ui.retainedBatches: 200
+    spark.streaming.receiver.writeAheadLog.enable: false
+    spark.streaming.kafka.maxRatePerPartition: 3000
+    spark.streaming.batchDuration: 5000
+----

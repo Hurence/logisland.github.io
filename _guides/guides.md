@@ -52,7 +52,9 @@ permalink: /guides/
 
 - [User sessions]({{site.baseurl}}/guides/web-sessionization-guide)
 
+### Logisland installation
 
+- [Spark cluster standalone]({{site.baseurl}}/guides/logisland_on_spark_cluster)
 
 
 
