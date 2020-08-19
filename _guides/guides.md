@@ -54,7 +54,7 @@ permalink: /guides/
 
 ### Logisland installation
 
-- [Spark cluster standalone]({{site.baseurl}}/guides/logisland_on_spark_cluster)
+- [Spark cluster standalone]({{site.baseurl}}/guides/logisland-on-spark-cluster)
 
 
 
