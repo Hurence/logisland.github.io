@@ -198,6 +198,24 @@ is available in all spark nodes of your cluster (with read acces for spark user)
 <td class="tableblock halign-left valign-top"><p class="tableblock">add --supervise to spark-submit (see spark doc)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">true</p></td>
 </tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">spark.executor.cores</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">No</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">add --executor-cores to spark-submit (see spark doc)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">a number</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">spark.driver.memory</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">No</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">add --driver-memory to spark-submit (see spark doc)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">10G</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">spark.driver.cores</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">No</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">add --driver-cores to spark-submit (see spark doc)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">only available in cluster mode</p></td>
+</tr>
 </tbody>
 </table>
 <div class="sect3">
@@ -225,6 +243,9 @@ engine:
     spark.total.executor.cores: 2
     spark.executor.memory: 2G
     spark.supervise: true
+    spark.executor.cores: 2
+    spark.driver.memory: 1G
+    spark.driver.cores: 1
     # Other conf for kafka streaming
     spark.serializer: org.apache.spark.serializer.KryoSerializer
     spark.ui.port: 4054

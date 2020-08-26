@@ -66,6 +66,9 @@ spark.deploy-mode, Yes, Deploy mode to use, "client" or "cluster"
 spark.total.executor.cores, No, add specified --total-executor-cores X to spark-submit (see spark doc), a number
 spark.executor.memory, No, add specified --executor-memory X to spark-submit (see spark doc), 10G
 spark.supervise, No, add --supervise to spark-submit (see spark doc), true
+spark.executor.cores, No, add --executor-cores to spark-submit (see spark doc), a number
+spark.driver.memory, No, add --driver-memory to spark-submit (see spark doc), 10G
+spark.driver.cores, No, add --driver-cores to spark-submit (see spark doc), only available in cluster mode, a number
 |===
 
 
@@ -93,6 +96,9 @@ engine:
     spark.total.executor.cores: 2
     spark.executor.memory: 2G
     spark.supervise: true
+    spark.executor.cores: 2
+    spark.driver.memory: 1G
+    spark.driver.cores: 1
     # Other conf for kafka streaming
     spark.serializer: org.apache.spark.serializer.KryoSerializer
     spark.ui.port: 4054
